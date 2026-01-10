@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FFLegendsHub | Ayarlar</title>
+    <link rel="stylesheet" href="css/main.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="index.html" class="logo">
+                    <img src="https://i.hizliresim.com/h701fas.jpg" class="logo-icon" alt="FF">
+                    <span class="logo-text">FFLegendsHub</span>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Ana Menü</div>
+                    <a href="index.html" class="nav-link">
+                        <span class="nav-emoji">📊</span>
+                        <span>Önizleme</span>
+                    </a>
+                    <a href="players.html" class="nav-link">
+                        <span class="nav-emoji">👥</span>
+                        <span>Oyuncular</span>
+                    </a>
+                    <a href="matches.html" class="nav-link">
+                        <span class="nav-emoji">📜</span>
+                        <span>Geçmiş Maçlar</span>
+                    </a>
+                    <a href="draft.html" class="nav-link">
+                        <span class="nav-emoji">⚔️</span>
+                        <span>Draft Yap</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">İstatistikler</div>
+                    <a href="leaderboard.html" class="nav-link">
+                        <span class="nav-emoji">🏆</span>
+                        <span>Liderlik Tablosu</span>
+                    </a>
+                    <a href="champions.html" class="nav-link">
+                        <span class="nav-emoji">⭐</span>
+                        <span>Şampiyonlar</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Sistem</div>
+                    <a href="settings.html" class="nav-link active">
+                        <span class="nav-emoji">⚙️</span>
+                        <span>Ayarlar</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="page-header">
+                <h1 class="page-title">⚙️ Ayarlar</h1>
+                <p class="page-description">Sistem ayarları ve yönetim paneli.</p>
+            </div>
+
+            <!-- Admin Login Section -->
+            <div id="admin-login-section">
+                <div class="card" style="max-width: 400px;">
+                    <h3 class="card-title mb-4">🔐 Admin Girişi</h3>
+                    <p class="text-muted mb-6">Ayarlara erişmek için admin şifresini girin.</p>
+
+                    <div class="form-group">
+                        <label class="form-label">Şifre</label>
+                        <input type="password" id="admin-password" class="form-input" placeholder="Admin şifresi...">
+                    </div>
+
+                    <button class="btn btn-primary" style="width: 100%;" onclick="attemptLogin()">
+                        🔓 Giriş Yap
+                    </button>
+
+                    <div id="login-error" class="text-lose mt-4" style="display: none;">
+                        Yanlış şifre! Tekrar deneyin.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Panel (Hidden by default) -->
+            <div id="admin-panel" style="display: none;">
+                <!-- General Settings -->
+                <div class="card mb-6">
+                    <h3 class="card-title mb-4">⚙️ Genel Ayarlar</h3>
+                    <div class="form-group">
+                        <label class="form-label flex justify-between">
+                            <span>Draft Ses Seviyesi</span>
+                            <span id="volume-value-text">30%</span>
+                        </label>
+                        <input type="range" id="draft-volume-slider" class="form-input" min="0" max="100" value="30"
+                            oninput="updateVolumePreview(this.value)" onchange="saveVolumeSetting(this.value)">
+                        <small class="text-muted" style="font-size: var(--text-xs); display: block; margin-top: 4px;">
+                            Draft simülatöründeki müzik ve ses efektlerinin seviyesini belirleyin.
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <!-- Gemini API Card -->
+                <div class="card mb-6" id="gemini-api-card">
+                    <h3 class="card-title mb-4">🤖 Gemini Vision API (Ücretsiz)</h3>
+                    <p class="text-muted mb-4" style="font-size: var(--text-sm);">Ekran görüntüsünden maç verisi çekmek
+                        için Google Gemini API kullanılıyor. Ücretsiz API anahtarı almak için tıklayın.</p>
+
+                    <div class="form-group">
+                        <label class="form-label">API Anahtarı</label>
+                        <input type="password" id="gemini-api-key" class="form-input"
+                            placeholder="API anahtarınızı girin...">
+                        <small class="text-muted"
+                            style="font-size: var(--text-xs); margin-top: 4px; display: block;">Google AI Studio'dan
+                            ücretsiz alabilirsiniz</small>
+                    </div>
+
+                    <div class="flex gap-4">
+                        <button class="btn btn-secondary" onclick="saveGeminiKey()">💾 Kaydet</button>
+                        <button class="btn btn-ghost" onclick="testGeminiKey()" id="test-gemini-btn">🧪 Test Et</button>
+                        <a href="https://aistudio.google.com/app/apikey" target="_blank" class="btn btn-ghost"
+                            style="margin-left: auto;">🔗 API Key Al</a>
+                    </div>
+
+                    <div id="gemini-status" style="margin-top: var(--space-4); display: none;"></div>
+                </div>
+
+                <div class="grid grid-cols-3 mb-8">
+                    <div class="card" style="text-align: center; cursor: pointer;"
+                        onclick="openModal('add-player-modal')">
+                        <div style="font-size: 3rem; margin-bottom: var(--space-4);">👤</div>
+                        <h4>Oyuncu Ekle</h4>
+                        <p class="text-muted">Yeni oyuncu ekle</p>
+                    </div>
+
+                    <div class="card" style="text-align: center; cursor: pointer;"
+                        onclick="openModal('edit-player-modal'); populatePlayerEditList();">
+                        <div style="font-size: 3rem; margin-bottom: var(--space-4);">✏️</div>
+                        <h4>Oyuncu Düzenle</h4>
+                        <p class="text-muted">Profilleri yönet</p>
+                    </div>
+
+                    <div class="card" style="text-align: center; cursor: pointer;"
+                        onclick="openModal('add-match-modal')">
+                        <div style="font-size: 3rem; margin-bottom: var(--space-4);">📝</div>
+                        <h4>Manuel Maç Ekle</h4>
+                        <p class="text-muted">Detaylı maç kaydı</p>
+                    </div>
+
+                    <div class="card" style="text-align: center; cursor: pointer;"
+                        onclick="openModal('screenshot-match-modal')">
+                        <div style="font-size: 3rem; margin-bottom: var(--space-4);">📸</div>
+                        <h4>Screenshot ile Ekle</h4>
+                        <p class="text-muted">AI ile otomatik</p>
+                    </div>
+
+                    <div class="card" style="text-align: center; cursor: pointer;" onclick="openModal('data-modal')">
+                        <div style="font-size: 3rem; margin-bottom: var(--space-4);">💾</div>
+                        <h4>Veri Yönetimi</h4>
+                        <p class="text-muted">İçe/Dışa aktar</p>
+                    </div>
+
+                    <div class="card" style="text-align: center; cursor: pointer;"
+                        onclick="openModal('edit-match-modal'); populateMatchEditList();">
+                        <div style="font-size: 3rem; margin-bottom: var(--space-4);">⚙️</div>
+                        <h4>Maç Düzenle</h4>
+                        <p class="text-muted">Geçmiş maçları yönet</p>
+                    </div>
+                </div>
+
+                <!-- Settings Grid -->
+                <div class="grid grid-cols-2">
+                    <!-- General Settings -->
+                    <div class="card">
+                        <h3 class="card-title mb-4">🛠️ Genel Ayarlar</h3>
+
+                        <div class="form-group">
+                            <label class="form-label">Admin Şifresi Değiştir</label>
+                            <input type="password" id="new-password" class="form-input" placeholder="Yeni şifre...">
+                        </div>
+                        <button class="btn btn-secondary" onclick="changePassword()">Şifreyi Güncelle</button>
+                    </div>
+
+                    <!-- Data Info -->
+                    <div class="card">
+                        <h3 class="card-title mb-4">📊 Veri Özeti</h3>
+                        <div class="flex justify-between mb-4">
+                            <span class="text-muted">Toplam Oyuncu:</span>
+                            <span id="stats-players" class="text-orange">0</span>
+                        </div>
+                        <div class="flex justify-between mb-4">
+                            <span class="text-muted">Toplam Maç:</span>
+                            <span id="stats-matches" class="text-orange">0</span>
+                        </div>
+                        <div class="flex justify-between mb-4">
+                            <span class="text-muted">Son Güncelleme:</span>
+                            <span id="stats-updated" class="text-muted">-</span>
+                        </div>
+                        <button class="btn btn-secondary" style="width: 100%; margin-top: var(--space-4);"
+                            onclick="if(confirm('TÜM VERİLER SİLİNECEK! Emin misin?')) { DB.clearData(); location.reload(); }">
+                            🗑️ Tüm Verileri Sil
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Logout -->
+                <div class="mt-6">
+                    <button class="btn btn-ghost" onclick="logout()">🚪 Çıkış Yap</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Player Modal -->
+    <div class="modal-backdrop" id="add-player-modal">
+        <div class="modal" style="max-width: 450px;">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h2 class="modal-title" style="color: var(--orange);">Oyuncu Ekle</h2>
+                <button class="btn btn-ghost" onclick="closeModal('add-player-modal')"
+                    style="font-size: 1.5rem; padding: 0;">×</button>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Nickname <span class="text-lose">*</span></label>
+                <input type="text" id="player-nickname" class="form-input" placeholder="Oyun içi takma ad">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Gerçek İsim</label>
+                <input type="text" id="player-realname" class="form-input" placeholder="(Opsiyonel)">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4);">
+                <div class="form-group">
+                    <label class="form-label">Ana Rol</label>
+                    <select id="player-role" class="form-input">
+                        <option value="FILL">Fill</option>
+                        <option value="TOP">Top</option>
+                        <option value="JUNGLE">Jungle</option>
+                        <option value="MID">Mid</option>
+                        <option value="ADC">ADC</option>
+                        <option value="SUPPORT">Support</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">İkincil Rol</label>
+                    <select id="player-role2" class="form-input">
+                        <option value="FILL">Fill</option>
+                        <option value="TOP">Top</option>
+                        <option value="JUNGLE">Jungle</option>
+                        <option value="MID">Mid</option>
+                        <option value="ADC">ADC</option>
+                        <option value="SUPPORT">Support</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Avatar URL</label>
+                <input type="text" id="player-avatar" class="form-input" placeholder="https://...">
+                <small class="text-muted" style="font-size: var(--text-xs); margin-top: 4px; display: block;">Profil
+                    resmi için bir URL ekleyin (opsiyonel)</small>
+            </div>
+
+            <div class="flex gap-4" style="margin-top: var(--space-6);">
+                <button class="btn btn-secondary" onclick="closeModal('add-player-modal')">İptal</button>
+                <button class="btn btn-primary" style="flex:1" onclick="addPlayer()">Kaydet</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Player Modal -->
+    <div class="modal-backdrop" id="edit-player-modal">
+        <div class="modal" style="max-width: 500px;">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h2 class="modal-title" style="color: var(--cyan);">Oyuncu Düzenle</h2>
+                <button class="btn btn-ghost" onclick="closeModal('edit-player-modal')"
+                    style="font-size: 1.5rem; padding: 0;">×</button>
+            </div>
+
+            <div class="form-group mb-6">
+                <label class="form-label">Düzenlenecek Oyuncuyu Seç</label>
+                <select id="edit-player-select" class="form-input" onchange="loadPlayerForEdit()">
+                    <option value="">-- Oyuncu Seçin --</option>
+                </select>
+            </div>
+
+            <div id="edit-player-form"
+                style="display: none; border-top: 1px solid var(--border-color); padding-top: var(--space-4);">
+                <input type="hidden" id="edit-player-id">
+
+                <div class="form-group">
+                    <label class="form-label">Görünen İsim (Nickname)</label>
+                    <input type="text" id="edit-player-nickname" class="form-input">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Gerçek İsim</label>
+                    <input type="text" id="edit-player-realname" class="form-input">
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4);">
+                    <div class="form-group">
+                        <label class="form-label">Ana Rol</label>
+                        <select id="edit-player-role" class="form-input">
+                            <option value="FILL">Fill</option>
+                            <option value="TOP">Top</option>
+                            <option value="JUNGLE">Jungle</option>
+                            <option value="MID">Mid</option>
+                            <option value="ADC">ADC</option>
+                            <option value="SUPPORT">Support</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">İkincil Rol</label>
+                        <select id="edit-player-role2" class="form-input">
+                            <option value="FILL">Fill</option>
+                            <option value="TOP">Top</option>
+                            <option value="JUNGLE">Jungle</option>
+                            <option value="MID">Mid</option>
+                            <option value="ADC">ADC</option>
+                            <option value="SUPPORT">Support</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Avatar URL</label>
+                    <input type="text" id="edit-player-avatar" class="form-input">
+                </div>
+
+                <button class="btn btn-lose" onclick="deletePlayerFromEdit()">🗑️ Oyuncuyu Sil</button>
+                <button class="btn btn-secondary" onclick="closeModal('edit-player-modal')"
+                    style="margin-left: auto;">İptal</button>
+                <button class="btn btn-primary" onclick="savePlayerEdits()">Değişiklikleri Kaydet</button>
+            </div>
+        </div>
+    </div>
+    </div>
+
+
+    <!-- Detailed Match Entry Modal -->
+    <div class="modal-backdrop" id="add-match-modal">
+        <div class="modal" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
+            <div class="modal-header"
+                style="position: sticky; top: 0; background: var(--bg-secondary); z-index: 10; padding-bottom: var(--space-4); border-bottom: 1px solid var(--border-color);">
+                <h2 class="modal-title">📝 Manuel Maç Ekle (Detaylı)</h2>
+                <button class="btn btn-ghost" onclick="closeModal('add-match-modal')"
+                    style="position: absolute; right: 20px; top: 20px; font-size: 1.5rem; padding: 0;">×</button>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6);">
+                <!-- Blue Team -->
+                <div>
+                    <h3 class="text-cyan mb-4"
+                        style="position: sticky; top: 80px; background: var(--bg-secondary); padding: var(--space-2) 0;">
+                        Mavi Takım</h3>
+                    <div id="blue-players-form"></div>
+                </div>
+
+                <!-- Red Team -->
+                <div>
+                    <h3 class="text-lose mb-4"
+                        style="position: sticky; top: 80px; background: var(--bg-secondary); padding: var(--space-2) 0;">
+                        Kırmızı Takım</h3>
+                    <div id="red-players-form"></div>
+                </div>
+            </div>
+
+            <div class="form-group mt-6"
+                style="border-top: 1px solid var(--border-color); padding-top: var(--space-6);">
+                <label class="form-label">Kazanan Takım</label>
+                <select id="match-winner" class="form-input">
+                    <option value="blue">Mavi Takım</option>
+                    <option value="red">Kırmızı Takım</option>
+                </select>
+            </div>
+
+            <div class="flex gap-4 mt-6"
+                style="position: sticky; bottom: 0; background: var(--bg-secondary); padding-top: var(--space-4); border-top: 1px solid var(--border-color);">
+                <button class="btn btn-secondary" onclick="closeModal('add-match-modal')">İptal</button>
+                <button class="btn btn-primary" style="flex:1" onclick="saveDetailedMatch()">Maçı Kaydet</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Screenshot Match Entry Modal -->
+    <div class="modal-backdrop" id="screenshot-match-modal">
+        <div class="modal" style="max-width: 600px; max-height: 85vh; display: flex; flex-direction: column;">
+
+            <div class="modal-header"
+                style="flex-shrink: 0; padding-bottom: 15px; border-bottom: 1px solid var(--border-color);">
+                <h2 class="modal-title">📸 Screenshot ile Maç Ekle</h2>
+                <button class="btn btn-ghost" onclick="closeModal('screenshot-match-modal')"
+                    style="font-size: 1.5rem; padding: 0;">×</button>
+            </div>
+
+            <div style="overflow-y: auto; flex-grow: 1; padding: 15px 5px;">
+                <div id="gemini-check-warning"
+                    style="display: none; padding: var(--space-4); background: rgba(255, 107, 53, 0.1); border: 1px solid var(--orange); border-radius: var(--radius-md); margin-bottom: var(--space-4);">
+                    <p class="text-orange" style="font-weight: var(--font-semibold);">⚠️ Gemini API anahtarı gerekli!
+                    </p>
+                    <p class="text-muted" style="font-size: var(--text-sm); margin-top: var(--space-2);">Lütfen önce
+                        yukarıdan bir API anahtarı girin ve kaydedin.</p>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Maç Sonucu Ekran Görüntüsü</label>
+                    <label class="btn btn-secondary"
+                        style="width: 100%; display: block; text-align: center; cursor: pointer;">
+                        📁 Dosya Seç
+                        <input type="file" id="screenshot-input" accept="image/*" style="display: none;"
+                            onchange="previewScreenshot(event)">
+                    </label>
+                </div>
+
+                <div id="screenshot-preview" style="display: none; margin: var(--space-4) 0;">
+                    <img id="screenshot-img"
+                        style="width: 100%; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                </div>
+
+                <div id="screenshot-analysis" style="margin-top: var(--space-4);"></div>
+            </div>
+
+            <div class="flex gap-4"
+                style="flex-shrink: 0; padding-top: 15px; border-top: 1px solid var(--border-color); margin-top: 10px;">
+                <button class="btn btn-secondary" onclick="closeModal('screenshot-match-modal')">İptal</button>
+                <button class="btn btn-primary" id="analyze-btn" onclick="analyzeScreenshot()" style="flex:1"
+                    disabled>🤖 Analiz Et</button>
+                <button class="btn btn-primary" id="save-analyzed-btn" onclick="saveAnalyzedMatch()"
+                    style="flex:1; display: none;">💾 Kaydet</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Modal -->
+    <div class="modal-backdrop" id="data-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">💾 Veri Yönetimi</h2>
+            </div>
+            <div class="mb-6">
+                <button class="btn btn-primary" style="width: 100%; margin-bottom: var(--space-3);"
+                    onclick="exportData()">
+                    📤 Verileri Dışa Aktar (JSON)
+                </button>
+                <label class="btn btn-secondary" style="width: 100%; display: block; text-align: center;">
+                    📥 Verileri İçe Aktar
+                    <input type="file" id="import-file" accept=".json" style="display: none;"
+                        onchange="importData(event)">
+                </label>
+            </div>
+            <button class="btn btn-ghost" style="width: 100%;" onclick="closeModal('data-modal')">Kapat</button>
+        </div>
+    </div>
+
+    <!-- Edit Match Modal -->
+    <div class="modal-backdrop" id="edit-match-modal">
+        <div class="modal" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
+            <div class="modal-header"
+                style="position: sticky; top: 0; background: var(--bg-secondary); z-index: 10; padding-bottom: var(--space-4); border-bottom: 1px solid var(--border-color);">
+                <h2 class="modal-title" style="color: var(--cyan);">Maç Düzenle</h2>
+                <button class="btn btn-ghost" onclick="closeModal('edit-match-modal')"
+                    style="position: absolute; right: 20px; top: 20px; font-size: 1.5rem; padding: 0;">×</button>
+            </div>
+
+            <div class="form-group mb-6 mt-4">
+                <label class="form-label">Düzenlenecek Maçı Seç</label>
+                <select id="edit-match-select" class="form-input" onchange="loadMatchForEdit()">
+                    <option value="">-- Maç Seçin --</option>
+                </select>
+            </div>
+
+            <div id="edit-match-form" style="display: none;">
+                <input type="hidden" id="edit-match-id">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6);">
+                    <div>
+                        <h3 class="text-cyan mb-4">Mavi Takım</h3>
+                        <div id="edit-blue-players"></div>
+                    </div>
+                    <div>
+                        <h3 class="text-lose mb-4">Kırmızı Takım</h3>
+                        <div id="edit-red-players"></div>
+                    </div>
+                </div>
+
+                <div class="form-group mt-6"
+                    style="border-top: 1px solid var(--border-color); padding-top: var(--space-6);">
+                    <label class="form-label">Kazanan Takım</label>
+                    <select id="edit-match-winner" class="form-input">
+                        <option value="blue">Mavi Takım</option>
+                        <option value="red">Kırmızı Takım</option>
+                    </select>
+                </div>
+
+                <div class="flex gap-4 mt-6"
+                    style="position: sticky; bottom: 0; background: var(--bg-secondary); padding-top: var(--space-4); border-top: 1px solid var(--border-color); z-index: 10;">
+                    <button class="btn btn-lose" onclick="deleteMatchFromEdit()">🗑️ Maçı Sil</button>
+                    <button class="btn btn-secondary" onclick="closeModal('edit-match-modal')"
+                        style="margin-left: auto;">İptal</button>
+                    <button class="btn btn-primary" onclick="saveMatchEdits()">💾 Değişiklikleri Kaydet</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/db.js"></script>
+    <script src="js/stats.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/gemini.js"></script>
+    <script>
+        // Default admin password (can be changed)
+        const DEFAULT_PASSWORD = 'facebook00';
+
+        function getAdminPassword() {
+            return localStorage.getItem('fflegends_admin_pw') || DEFAULT_PASSWORD;
+        }
+
+        function attemptLogin() {
+            const input = document.getElementById('admin-password').value;
+            if (input === getAdminPassword()) {
+                sessionStorage.setItem('admin_logged_in', 'true');
+                showAdminPanel();
+            } else {
+                document.getElementById('login-error').style.display = 'block';
+            }
+        }
+
+        function showAdminPanel() {
+            document.getElementById('admin-login-section').style.display = 'none';
+            document.getElementById('admin-panel').style.display = 'block';
+            loadStats();
+        }
+
+        function logout() {
+            sessionStorage.removeItem('admin_logged_in');
+            location.reload();
+        }
+
+        function changePassword() {
+            const newPw = document.getElementById('new-password').value;
+            if (newPw.length >= 4) {
+                localStorage.setItem('fflegends_admin_pw', newPw);
+                alert('Şifre güncellendi!');
+                document.getElementById('new-password').value = '';
+            } else {
+                alert('Şifre en az 4 karakter olmalı!');
+            }
+        }
+
+        function loadStats() {
+            document.getElementById('stats-players').textContent = DB.getPlayers().length;
+            document.getElementById('stats-matches').textContent = DB.getMatches().length;
+            document.getElementById('stats-updated').textContent = new Date().toLocaleString('tr-TR');
+        }
+
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        function addPlayer() {
+            const nickname = document.getElementById('player-nickname').value.trim();
+            const realName = document.getElementById('player-realname').value.trim();
+            const role = document.getElementById('player-role').value;
+            const role2 = document.getElementById('player-role2').value;
+            const avatar = document.getElementById('player-avatar').value.trim();
+
+            if (!nickname) {
+                alert('Nickname gerekli!');
+                return;
+            }
+
+            DB.createPlayer(nickname, {
+                nickname: nickname,
+                realName: realName,
+                mainRole: role,
+                secondaryRole: role2,
+                avatar: avatar || null
+            });
+            alert(`${nickname} eklendi!`);
+
+            // Clear form
+            document.getElementById('player-nickname').value = '';
+            document.getElementById('player-realname').value = '';
+            document.getElementById('player-role').value = 'FILL';
+            document.getElementById('player-role2').value = 'FILL';
+            document.getElementById('player-avatar').value = '';
+
+            closeModal('add-player-modal');
+            loadStats();
+        }
+
+        // ===== EDIT PLAYER FUNCTIONS =====
+        function populatePlayerEditList() {
+            const select = document.getElementById('edit-player-select');
+            select.innerHTML = '<option value="">-- Oyuncu Seçin --</option>';
+
+            const players = DB.getPlayers().sort((a, b) => a.name.localeCompare(b.name));
+            players.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.id;
+                opt.textContent = `${p.nickname || p.name} (${p.name})`;
+                select.appendChild(opt);
+            });
+        }
+
+        function loadPlayerForEdit() {
+            const playerId = document.getElementById('edit-player-select').value;
+            const form = document.getElementById('edit-player-form');
+
+            if (!playerId) {
+                form.style.display = 'none';
+                return;
+            }
+
+            const player = DB.getPlayerById(playerId);
+            if (!player) return;
+
+            document.getElementById('edit-player-id').value = player.id;
+            document.getElementById('edit-player-nickname').value = player.nickname || player.name;
+            document.getElementById('edit-player-realname').value = player.realName || '';
+            document.getElementById('edit-player-role').value = player.mainRole || 'FILL';
+            document.getElementById('edit-player-role2').value = player.secondaryRole || 'FILL';
+            document.getElementById('edit-player-avatar').value = player.avatar || '';
+
+            form.style.display = 'block';
+        }
+
+        function savePlayerEdits() {
+            const id = document.getElementById('edit-player-id').value;
+            const nickname = document.getElementById('edit-player-nickname').value.trim();
+            const realName = document.getElementById('edit-player-realname').value.trim();
+            const role = document.getElementById('edit-player-role').value;
+            const role2 = document.getElementById('edit-player-role2').value;
+            const avatar = document.getElementById('edit-player-avatar').value.trim();
+
+            if (!nickname) {
+                alert('Nickname boş olamaz!');
+                return;
+            }
+
+            const success = DB.updatePlayer(id, {
+                nickname: nickname,
+                realName: realName,
+                mainRole: role,
+                secondaryRole: role2,
+                avatar: avatar || null
+            });
+
+            if (success) {
+                alert('Oyuncu bilgileri güncellendi!');
+                closeModal('edit-player-modal');
+                loadStats();
+            } else {
+                alert('Güncelleme başarısız!');
+            }
+        }
+
+        function deletePlayerFromEdit() {
+            const id = document.getElementById('edit-player-id').value;
+            const name = document.getElementById('edit-player-nickname').value;
+            if (confirm(`${name} adlı oyuncuyu silmek istediğine emin misin? Bu işlem geri alınamaz!`)) {
+                if (DB.deletePlayer(id)) {
+                    alert('Oyuncu silindi!');
+                    closeModal('edit-player-modal');
+                    loadStats();
+                }
+            }
+        }
+
+
+
+        // ===== EDIT MATCH FUNCTIONS =====
+        function populateMatchEditList() {
+            const select = document.getElementById('edit-match-select');
+            if (!select) return;
+            select.innerHTML = '<option value="">-- Maç Seçin --</option>';
+
+            const matches = DB.getMatches().slice().reverse();
+            matches.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m.id;
+                const blueK = (m.blueTeam || []).reduce((s, p) => s + (parseInt(p.k || p.kills) || 0), 0);
+                const redK = (m.redTeam || []).reduce((s, p) => s + (parseInt(p.k || p.kills) || 0), 0);
+                opt.textContent = `${Utils.formatDate(m.date)} | Mavi ${blueK} - ${redK} Kırmızı`;
+                select.appendChild(opt);
+            });
+        }
+
+        function loadMatchForEdit() {
+            const matchId = document.getElementById('edit-match-select').value;
+            const form = document.getElementById('edit-match-form');
+            if (!matchId) { if (form) form.style.display = 'none'; return; }
+
+            const match = DB.getMatchById(matchId);
+            if (!match) return;
+
+            document.getElementById('edit-match-id').value = match.id;
+            document.getElementById('edit-match-winner').value = match.winnerTeam || match.winner;
+
+            const roles = ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'];
+            const renderRows = (team, containerId, teamPrefix) => {
+                const container = document.getElementById(containerId);
+                if (!container) return;
+                container.innerHTML = '';
+                for (let i = 0; i < 5; i++) {
+                    const p = (team && team[i]) ? team[i] : { name: '', champion: '', role: roles[i], k: 0, d: 0, a: 0, cs: 0, gold: '0', damage: '0' };
+                    container.innerHTML += `
+                        <div class="player-form-row mb-4 p-3 bg-secondary rounded" style="border-left: 3px solid ${teamPrefix === 'eb' ? 'var(--cyan)' : 'var(--lose)'}">
+                            <input type="text" class="form-input mb-2" value="${Utils.escapeHtml(p.name)}" id="${teamPrefix}-name-${i}" placeholder="Oyuncu adı">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); margin-bottom: var(--space-2);">
+                                <input type="text" class="form-input" value="${Utils.escapeHtml(p.champion)}" id="${teamPrefix}-champ-${i}" placeholder="Şampiyon">
+                                <select class="form-input" id="${teamPrefix}-lane-${i}">
+                                    ${roles.map(r => `<option value="${r}" ${p.role === r ? 'selected' : ''}>${r}</option>`).join('')}
+                                    <option value="FILL" ${p.role === 'FILL' ? 'selected' : ''}>FILL</option>
+                                </select>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-2); margin-bottom: var(--space-2);">
+                                <input type="number" class="form-input" value="${p.k || p.kills || 0}" id="${teamPrefix}-k-${i}" placeholder="K">
+                                <input type="number" class="form-input" value="${p.d || p.deaths || 0}" id="${teamPrefix}-d-${i}" placeholder="D">
+                                <input type="number" class="form-input" value="${p.a || p.assists || 0}" id="${teamPrefix}-a-${i}" placeholder="A">
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-2);">
+                                <input type="number" class="form-input" value="${p.cs || 0}" id="${teamPrefix}-cs-${i}" placeholder="CS">
+                                <input type="text" class="form-input" value="${p.gold || '0'}" id="${teamPrefix}-gold-${i}" placeholder="Gold">
+                                <input type="text" class="form-input" value="${p.damage || '0'}" id="${teamPrefix}-dmg-${i}" placeholder="Dmg">
+                            </div>
+                        </div>
+                    `;
+                }
+            };
+
+            renderRows(match.blueTeam, 'edit-blue-players', 'eb');
+            renderRows(match.redTeam, 'edit-red-players', 'er');
+            form.style.display = 'block';
+        }
+
+        function saveMatchEdits() {
+            const id = document.getElementById('edit-match-id').value;
+            const getTeamData = (prefix) => {
+                const team = [];
+                for (let i = 0; i < 5; i++) {
+                    team.push({
+                        name: document.getElementById(`${prefix}-name-${i}`).value.trim(),
+                        champion: document.getElementById(`${prefix}-champ-${i}`).value.trim(),
+                        championId: document.getElementById(`${prefix}-champ-${i}`).value.trim(),
+                        role: document.getElementById(`${prefix}-lane-${i}`).value,
+                        kills: parseInt(document.getElementById(`${prefix}-k-${i}`).value) || 0,
+                        deaths: parseInt(document.getElementById(`${prefix}-d-${i}`).value) || 0,
+                        assists: parseInt(document.getElementById(`${prefix}-a-${i}`).value) || 0,
+                        k: parseInt(document.getElementById(`${prefix}-k-${i}`).value) || 0,
+                        d: parseInt(document.getElementById(`${prefix}-d-${i}`).value) || 0,
+                        a: parseInt(document.getElementById(`${prefix}-a-${i}`).value) || 0,
+                        cs: parseInt(document.getElementById(`${prefix}-cs-${i}`).value) || 0,
+                        gold: document.getElementById(`${prefix}-gold-${i}`).value.trim(),
+                        damage: document.getElementById(`${prefix}-dmg-${i}`).value.trim()
+                    });
+                }
+                return team;
+            };
+
+            const success = DB.updateMatch(id, {
+                blueTeam: getTeamData('eb'),
+                redTeam: getTeamData('er'),
+                winnerTeam: document.getElementById('edit-match-winner').value
+            });
+
+            if (success) {
+                alert('Maç başarıyla güncellendi ve istatistikler yeniden hesaplandı!');
+                closeModal('edit-match-modal');
+                loadStats();
+            }
+        }
+
+        function deleteMatchFromEdit() {
+            const id = document.getElementById('edit-match-id').value;
+            if (confirm('Bu maçı silmek istediğine emin misin? Bu işlem geri alınamaz ve istatistikler yeniden hesaplanır.')) {
+                if (DB.deleteMatch(id)) {
+                    alert('Maç silindi!');
+                    closeModal('edit-match-modal');
+                    loadStats();
+                }
+            }
+        }
+
+
+        function addMatch() {
+            const blueTeam = [];
+            const redTeam = [];
+
+            for (let i = 1; i <= 5; i++) {
+                const bp = document.getElementById(`blue-p${i}`).value.trim();
+                const rp = document.getElementById(`red-p${i}`).value.trim();
+                if (bp) blueTeam.push({ name: bp, k: 0, d: 0, a: 0 });
+                if (rp) redTeam.push({ name: rp, k: 0, d: 0, a: 0 });
+            }
+
+            if (blueTeam.length === 0 || redTeam.length === 0) {
+                alert('Her takımda en az 1 oyuncu olmalı!');
+                return;
+            }
+
+            const winner = document.getElementById('match-winner').value;
+
+            DB.saveMatch({
+                blueTeam,
+                redTeam,
+                winnerTeam: winner,
+                blueTeamName: 'Mavi Takım',
+                redTeamName: 'Kırmızı Takım'
+            });
+
+            alert('Maç kaydedildi!');
+            // Clear inputs
+            for (let i = 1; i <= 5; i++) {
+                document.getElementById(`blue-p${i}`).value = '';
+                document.getElementById(`red-p${i}`).value = '';
+            }
+            closeModal('add-match-modal');
+            loadStats();
+        }
+
+        function exportData() {
+            const data = DB.exportData();
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `fflegends_backup_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                if (DB.importData(e.target.result)) {
+                    alert('Veriler başarıyla içe aktarıldı!');
+                    location.reload();
+                } else {
+                    alert('İçe aktarma başarısız!');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Check if already logged in
+        window.addEventListener('appReady', () => {
+            if (sessionStorage.getItem('admin_logged_in') === 'true') {
+                showAdminPanel();
+            }
+        });
+
+        // ===== GEMINI API FUNCTIONS =====
+        function saveGeminiKey() {
+            const key = document.getElementById('gemini-api-key').value.trim();
+            if (!key) {
+                alert('API anahtarı boş olamaz!');
+                return;
+            }
+            DB.saveSetting('geminiApiKey', key);
+            alert('API anahtarı kaydedildi!');
+        }
+
+        async function testGeminiKey() {
+            const key = DB.getGeminiApiKey();
+            if (!key) {
+                alert('Önce bir API anahtarı girin!');
+                return;
+            }
+
+            const btn = document.getElementById('test-gemini-btn');
+            const statusDiv = document.getElementById('gemini-status');
+
+            btn.disabled = true;
+            btn.textContent = '⏳ Test ediliyor...';
+            statusDiv.style.display = 'block';
+            statusDiv.innerHTML = '<p class="text-muted">⏳ API test ediliyor...</p>';
+
+            const result = await GeminiAPI.testApiKey(key);
+
+            if (result.success) {
+                statusDiv.innerHTML = '<p class="text-win">✅ API başarıyla çalışıyor!</p>';
+            } else {
+                statusDiv.innerHTML = `<p class="text-lose">❌ Hata: ${result.error}</p>`;
+            }
+
+            btn.disabled = false;
+            btn.textContent = '🧪 Test Et';
+        }
+
+        // Override openModal to initialize detailed forms
+        const originalOpenModal = openModal;
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+
+            if (id === 'add-match-modal') {
+                initializeDetailedMatchForm();
+            }
+
+            if (id === 'screenshot-match-modal') {
+                const hasKey = !!DB.getGeminiApiKey();
+                document.getElementById('gemini-check-warning').style.display = hasKey ? 'none' : 'block';
+                loadApiKeyFromDB();
+            }
+        }
+
+        function loadApiKeyFromDB() {
+            const key = DB.getGeminiApiKey();
+            if (key) {
+                document.getElementById('gemini-api-key').value = key;
+            }
+        }
+
+        // ===== DETAILED MATCH ENTRY =====
+        function initializeDetailedMatchForm() {
+            const roles = ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'];
+
+            const blueForm = document.getElementById('blue-players-form');
+            blueForm.innerHTML = '';
+            for (let i = 0; i < 5; i++) {
+                blueForm.innerHTML += createPlayerFormRow(i, roles[i], 'blue');
+            }
+
+            const redForm = document.getElementById('red-players-form');
+            redForm.innerHTML = '';
+            for (let i = 0; i < 5; i++) {
+                redForm.innerHTML += createPlayerFormRow(i, roles[i], 'red');
+            }
+        }
+
+        function createPlayerFormRow(index, defaultRole, team) {
+            const roleIconUrl = Utils.getRoleIcon(defaultRole);
+
+            return `
+                <div class="player-form-row" style="background: var(--bg-secondary); padding: var(--space-3); border-radius: var(--radius-md); margin-bottom: var(--space-3); border-left: 3px solid ${team === 'blue' ? 'var(--cyan)' : 'var(--lose)'}">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-2);">
+                        <label style="font-size: var(--text-xs); color: var(--text-secondary);">${defaultRole}</label>
+                    </div>
+                    
+                    <input type="text" class="form-input" placeholder="Oyuncu adı" 
+                           id="${team}-name-${index}" style="margin-bottom: var(--space-2);">
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); margin-bottom: var(--space-2);">
+                        <input type="text" class="form-input" placeholder="Şampiyon" id="${team}-champ-${index}">
+                        <div style="display: flex; align-items: center; gap: 4px;">
+                            <img src="${roleIconUrl}" id="${team}-role-icon-${index}" style="width: 24px; height: 24px; opacity: 0.8;">
+                            <select class="form-input" id="${team}-lane-${index}" onchange="updateRoleIcon(this, '${team}-role-icon-${index}')">
+                                <option value="FILL" ${defaultRole === 'FILL' ? 'selected' : ''}>Fill</option>
+                                <option value="TOP" ${defaultRole === 'TOP' ? 'selected' : ''}>Top</option>
+                                <option value="JUNGLE" ${defaultRole === 'JUNGLE' ? 'selected' : ''}>Jungle</option>
+                                <option value="MID" ${defaultRole === 'MID' ? 'selected' : ''}>Mid</option>
+                                <option value="ADC" ${defaultRole === 'ADC' ? 'selected' : ''}>ADC</option>
+                                <option value="SUPPORT" ${defaultRole === 'SUPPORT' ? 'selected' : ''}>Support</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-2); margin-bottom: var(--space-2);">
+                        <input type="number" class="form-input" placeholder="K" min="0" id="${team}-k-${index}" value="0">
+                        <input type="number" class="form-input" placeholder="D" min="0" id="${team}-d-${index}" value="0">
+                        <input type="number" class="form-input" placeholder="A" min="0" id="${team}-a-${index}" value="0">
+                    </div>
+
+                    <!-- New Detailed Stats -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-2);">
+                         <input type="number" class="form-input" placeholder="CS" min="0" id="${team}-cs-${index}" title="CS">
+                         <input type="text" class="form-input" placeholder="Gold" id="${team}-gold-${index}" title="Gold (örn: 12.5k)">
+                         <input type="text" class="form-input" placeholder="Dmg" id="${team}-dmg-${index}" title="Damage (örn: 20k)">
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateRoleIcon(select, imgId) {
+            const role = select.value;
+            const iconUrl = Utils.getRoleIcon(role);
+            const img = document.getElementById(imgId);
+            if (img) img.src = iconUrl;
+        }
+
+        function saveDetailedMatch() {
+            const blueTeam = [];
+            const redTeam = [];
+
+            for (let i = 0; i < 5; i++) {
+                const name = document.getElementById(`blue-name-${i}`).value.trim();
+                if (!name) {
+                    alert(`Mavi takım oyuncu ${i + 1} adı gerekli!`);
+                    return;
+                }
+                blueTeam.push({
+                    name,
+                    champion: document.getElementById(`blue-champ-${i}`).value.trim() || 'Unknown',
+                    championId: document.getElementById(`blue-champ-${i}`).value.trim() || 'Unknown',
+                    role: document.getElementById(`blue-lane-${i}`).value,
+                    kills: parseInt(document.getElementById(`blue-k-${i}`).value) || 0,
+                    deaths: parseInt(document.getElementById(`blue-d-${i}`).value) || 0,
+                    assists: parseInt(document.getElementById(`blue-a-${i}`).value) || 0,
+                    k: parseInt(document.getElementById(`blue-k-${i}`).value) || 0,
+                    d: parseInt(document.getElementById(`blue-d-${i}`).value) || 0,
+                    a: parseInt(document.getElementById(`blue-a-${i}`).value) || 0,
+                    cs: parseInt(document.getElementById(`blue-cs-${i}`).value) || 0,
+                    gold: document.getElementById(`blue-gold-${i}`).value.trim() || '0',
+                    damage: document.getElementById(`blue-dmg-${i}`).value.trim() || '0'
+                });
+            }
+
+            for (let i = 0; i < 5; i++) {
+                const name = document.getElementById(`red-name-${i}`).value.trim();
+                if (!name) {
+                    alert(`Kırmızı takım oyuncu ${i + 1} adı gerekli!`);
+                    return;
+                }
+                redTeam.push({
+                    name,
+                    champion: document.getElementById(`red-champ-${i}`).value.trim() || 'Unknown',
+                    championId: document.getElementById(`red-champ-${i}`).value.trim() || 'Unknown',
+                    role: document.getElementById(`red-lane-${i}`).value,
+                    kills: parseInt(document.getElementById(`red-k-${i}`).value) || 0,
+                    deaths: parseInt(document.getElementById(`red-d-${i}`).value) || 0,
+                    assists: parseInt(document.getElementById(`red-a-${i}`).value) || 0,
+                    k: parseInt(document.getElementById(`red-k-${i}`).value) || 0,
+                    d: parseInt(document.getElementById(`red-d-${i}`).value) || 0,
+                    a: parseInt(document.getElementById(`red-a-${i}`).value) || 0,
+                    cs: parseInt(document.getElementById(`red-cs-${i}`).value) || 0,
+                    gold: document.getElementById(`red-gold-${i}`).value.trim() || '0',
+                    damage: document.getElementById(`red-dmg-${i}`).value.trim() || '0'
+                });
+            }
+
+            const winner = document.getElementById('match-winner').value;
+
+            DB.saveMatch({
+                blueTeam,
+                redTeam,
+                winnerTeam: winner,
+                blueTeamName: 'Mavi Takım',
+                redTeamName: 'Kırmızı Takım',
+                metadata: { processedBy: 'manual' }
+            });
+
+            alert('Maç kaydedildi!');
+            closeModal('add-match-modal');
+            loadStats();
+        }
+
+        // ===== SCREENSHOT MATCH ENTRY =====
+        let currentScreenshot = null;
+        let analyzedMatchData = null;
+
+        function previewScreenshot(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            currentScreenshot = file;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('screenshot-img').src = e.target.result;
+                document.getElementById('screenshot-preview').style.display = 'block';
+                document.getElementById('analyze-btn').disabled = false;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function analyzeScreenshot() {
+            if (!currentScreenshot) {
+                alert('Önce bir görsel seçin!');
+                return;
+            }
+
+            const apiKey = DB.getGeminiApiKey();
+            if (!apiKey) {
+                alert('Gemini API anahtarı gerekli!');
+                return;
+            }
+
+            const analyzeBtn = document.getElementById('analyze-btn');
+            const analysisDiv = document.getElementById('screenshot-analysis');
+
+            analyzeBtn.disabled = true;
+            analyzeBtn.textContent = '⏳ Analiz ediliyor...';
+            analysisDiv.style.display = 'block';
+            analysisDiv.innerHTML = '<p class="text-muted">🤖 Gemini AI maç verisini çıkarıyor...</p>';
+
+            try {
+                const base64 = await GeminiAPI.imageToBase64(currentScreenshot);
+                const result = await GeminiAPI.analyzeMatchScreenshot(base64, apiKey);
+
+                if (result.success) {
+                    analyzedMatchData = result.matchData;
+                    displayAnalyzedMatch(result.matchData);
+                    document.getElementById('save-analyzed-btn').style.display = 'block';
+                    analyzeBtn.style.display = 'none';
+                } else {
+                    analysisDiv.innerHTML = `<p class="text-lose">❌ Analiz hatası: ${result.error}</p>`;
+                    analyzeBtn.disabled = false;
+                    analyzeBtn.textContent = '🤖 Analiz Et';
+                }
+            } catch (error) {
+                analysisDiv.innerHTML = `<p class="text-lose">❌ Hata: ${error.message}</p>`;
+                analyzeBtn.disabled = false;
+                analyzeBtn.textContent = '🤖 Analiz Et';
+            }
+        }
+
+        function displayAnalyzedMatch(matchData) {
+            const analysisDiv = document.getElementById('screenshot-analysis');
+
+            const renderTeamEditable = (team, teamName, colorClass, prefix) => {
+                return `
+                    <div class="team-edit-section">
+                        <div class="${colorClass}" style="font-weight: bold; margin-bottom: var(--space-3); font-size: 1.1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 5px;">${teamName}</div>
+                        ${team.map((p, i) => `
+                            <div class="analyzed-player-row" style="background: var(--bg-secondary); padding: 10px; border-radius: var(--radius-md); margin-bottom: 10px; border-left: 3px solid ${colorClass === 'text-cyan' ? 'var(--cyan)' : 'var(--lose)'}">
+                                <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 8px; margin-bottom: 8px;">
+                                    <input type="text" class="form-input form-input-sm" value="${Utils.escapeHtml(p.name)}" id="${prefix}-name-${i}" placeholder="Nickname">
+                                    <input type="text" class="form-input form-input-sm" value="${Utils.escapeHtml(p.champion)}" id="${prefix}-champ-${i}" placeholder="Şampiyon">
+                                </div>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-bottom: 8px;">
+                                    <div class="input-with-label">
+                                        <label>K</label>
+                                        <input type="number" class="form-input form-input-sm" value="${p.kills}" id="${prefix}-k-${i}">
+                                    </div>
+                                    <div class="input-with-label">
+                                        <label>D</label>
+                                        <input type="number" class="form-input form-input-sm" value="${p.deaths}" id="${prefix}-d-${i}">
+                                    </div>
+                                    <div class="input-with-label">
+                                        <label>A</label>
+                                        <input type="number" class="form-input form-input-sm" value="${p.assists}" id="${prefix}-a-${i}">
+                                    </div>
+                                </div>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+                                    <div class="input-with-label">
+                                        <label>Lane</label>
+                                        <select class="form-input form-input-sm" id="${prefix}-role-${i}">
+                                            <option value="TOP" ${p.role === 'TOP' ? 'selected' : ''}>TOP</option>
+                                            <option value="JUNGLE" ${p.role === 'JUNGLE' ? 'selected' : ''}>JNG</option>
+                                            <option value="MID" ${p.role === 'MID' ? 'selected' : ''}>MID</option>
+                                            <option value="ADC" ${p.role === 'ADC' ? 'selected' : ''}>ADC</option>
+                                            <option value="SUPPORT" ${p.role === 'SUPPORT' ? 'selected' : ''}>SUP</option>
+                                            <option value="FILL" ${p.role === 'FILL' ? 'selected' : ''}>FILL</option>
+                                        </select>
+                                    </div>
+                                    <div class="input-with-label">
+                                        <label>Gold</label>
+                                        <input type="text" class="form-input form-input-sm" value="${p.gold}" id="${prefix}-gold-${i}">
+                                    </div>
+                                </div>
+                                <div class="input-with-label" style="margin-top: 5px;">
+                                    <label>Dmg</label>
+                                    <input type="text" class="form-input form-input-sm" value="${p.damage}" id="${prefix}-dmg-${i}">
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            };
+
+            analysisDiv.innerHTML = `
+                <div class="card" style="background: rgba(16, 185, 129, 0.05); border: 1px solid var(--win); overflow: visible;">
+                    <p class="text-win" style="font-weight: bold; margin-bottom: var(--space-4); display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 1.2rem;">✅</span> Maç başarıyla analiz edildi! (Düzenleyebilirsiniz)
+                    </p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4);">
+                        ${renderTeamEditable(matchData.blueTeam, matchData.blueTeamName || 'Mavi Takım', 'text-cyan', 'analyzed-blue')}
+                        ${renderTeamEditable(matchData.redTeam, matchData.redTeamName || 'Kırmızı Takım', 'text-lose', 'analyzed-red')}
+                    </div>
+                    <div class="form-group mt-4 pt-4" style="border-top: 1px solid var(--border-color);">
+                        <label class="form-label">Kazanan Takım</label>
+                        <select id="analyzed-winner" class="form-input">
+                            <option value="blue" ${matchData.winnerTeam === 'blue' ? 'selected' : ''}>Mavi Takım</option>
+                            <option value="red" ${matchData.winnerTeam === 'red' ? 'selected' : ''}>Kırmızı Takım</option>
+                        </select>
+                    </div>
+                </div>
+                <style>
+                    .input-with-label { display: flex; align-items: center; gap: 4px; }
+                    .input-with-label label { font-size: 10px; color: var(--text-tertiary); min-width: 15px; }
+                    .form-input-sm { padding: 4px 8px; font-size: 12px; height: auto; }
+                </style>
+            `;
+        }
+
+        function saveAnalyzedMatch() {
+            if (!analyzedMatchData) {
+                alert('Analiz edilmiş veri bulunamadı!');
+                return;
+            }
+
+            const getPlayerData = (prefix, i) => ({
+                name: document.getElementById(`${prefix}-name-${i}`).value.trim(),
+                champion: document.getElementById(`${prefix}-champ-${i}`).value.trim(),
+                championId: document.getElementById(`${prefix}-champ-${i}`).value.trim(),
+                role: document.getElementById(`${prefix}-role-${i}`).value,
+                kills: parseInt(document.getElementById(`${prefix}-k-${i}`).value) || 0,
+                deaths: parseInt(document.getElementById(`${prefix}-d-${i}`).value) || 0,
+                assists: parseInt(document.getElementById(`${prefix}-a-${i}`).value) || 0,
+                k: parseInt(document.getElementById(`${prefix}-k-${i}`).value) || 0,
+                d: parseInt(document.getElementById(`${prefix}-d-${i}`).value) || 0,
+                a: parseInt(document.getElementById(`${prefix}-a-${i}`).value) || 0,
+                cs: 0,
+                gold: document.getElementById(`${prefix}-gold-${i}`).value.trim(),
+                damage: document.getElementById(`${prefix}-dmg-${i}`).value.trim()
+            });
+
+            const finalBlueTeam = [];
+            const finalRedTeam = [];
+
+            for (let i = 0; i < 5; i++) {
+                finalBlueTeam.push(getPlayerData('analyzed-blue', i));
+                finalRedTeam.push(getPlayerData('analyzed-red', i));
+            }
+
+            const finalMatchData = {
+                blueTeam: finalBlueTeam,
+                redTeam: finalRedTeam,
+                winnerTeam: document.getElementById('analyzed-winner').value,
+                blueTeamName: analyzedMatchData.blueTeamName || 'Mavi Takım',
+                redTeamName: analyzedMatchData.redTeamName || 'Kırmızı Takım',
+                date: new Date().toISOString()
+            };
+
+            DB.saveMatch(finalMatchData);
+            alert('Maç başarıyla kaydedildi!');
+            closeModal('screenshot-match-modal');
+            loadStats();
+
+            analyzedMatchData = null;
+            currentScreenshot = null;
+            document.getElementById('screenshot-preview').style.display = 'none';
+            document.getElementById('screenshot-analysis').style.display = 'none';
+            document.getElementById('analyze-btn').style.display = 'block';
+            document.getElementById('save-analyzed-btn').style.display = 'none';
+            document.getElementById('screenshot-input').value = '';
+        }
+
+        // Load API key on panel show
+        window.addEventListener('appReady', () => {
+            if (sessionStorage.getItem('admin_logged_in') === 'true') {
+                showAdminPanel();
+                loadApiKeyFromDB();
+            }
+        });
+
+        // Volume Settings
+        function loadVolumeSetting() {
+            const savedVol = localStorage.getItem('draft_volume');
+            const vol = savedVol !== null ? parseInt(savedVol) : 30;
+            const slider = document.getElementById('draft-volume-slider');
+            const text = document.getElementById('volume-value-text');
+            if (slider) slider.value = vol;
+            if (text) text.textContent = vol + '%';
+        }
+
+        function updateVolumePreview(val) {
+            document.getElementById('volume-value-text').textContent = val + '%';
+        }
+
+        function saveVolumeSetting(val) {
+            localStorage.setItem('draft_volume', val);
+            const channel = new BroadcastChannel('draft_sync');
+            channel.postMessage({ type: 'volume_change', volume: val / 100 });
+        }
+
+        // Initialize on load
+        window.addEventListener('load', () => {
+            loadVolumeSetting();
+        });
+
+        // Handle Enter key for login
+        document.getElementById('admin-password')?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') attemptLogin();
+        });
+    </script>
+
+</body>
+
+</html>

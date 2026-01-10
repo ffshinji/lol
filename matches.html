@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FFLegendsHub | Maçlar</title>
+    <link rel="stylesheet" href="css/main.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="dashboard.html" class="logo">
+                    <img src="https://i.hizliresim.com/h701fas.jpg" class="logo-icon" alt="FF">
+                    <span class="logo-text">FFLegendsHub</span>
+                </a>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Ana Menü</div>
+                    <a href="index.html" class="nav-link"><span class="nav-emoji">📊</span><span>Önizleme</span></a>
+                    <a href="players.html" class="nav-link"><span class="nav-emoji">👥</span><span>Oyuncular</span></a>
+                    <a href="matches.html" class="nav-link active"><span class="nav-emoji">📜</span><span>Geçmiş
+                            Maçlar</span></a>
+                    <a href="draft.html" class="nav-link"><span class="nav-emoji">⚔️</span><span>Draft Yap</span></a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">İstatistikler</div>
+                    <a href="leaderboard.html" class="nav-link"><span class="nav-emoji">🏆</span><span>Liderlik
+                            Tablosu</span></a>
+                    <a href="champions.html" class="nav-link"><span
+                            class="nav-emoji">⭐</span><span>Şampiyonlar</span></a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Sistem</div>
+                    <a href="settings.html" class="nav-link"><span class="nav-emoji">⚙️</span><span>Ayarlar</span></a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="page-header">
+                <h1 class="page-title">📜 Geçmiş Maçlar</h1>
+                <p class="page-description">Tüm maç kayıtları.</p>
+            </div>
+            <div id="matches-list"></div>
+        </main>
+    </div>
+
+
+    <!-- Match Detail Modal -->
+    <div class="modal-backdrop" id="match-detail-modal">
+        <div class="modal" style="max-width: 1400px; width: 95%; max-height: 90vh; overflow-y: auto;">
+            <div class="modal-header"
+                style="position: sticky; top: 0; background: var(--bg-secondary); z-index: 10; padding-bottom: var(--space-4); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                <h2 class="modal-title">Maç Detayı</h2>
+                <button class="btn btn-ghost" onclick="closeModal('match-detail-modal')"
+                    style="font-size: 1.5rem; padding: 0;">×</button>
+            </div>
+            <div id="match-detail-content" class="mt-6">
+                <!-- Content injected via JS -->
+            </div>
+        </div>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/db.js"></script>
+    <script src="js/stats.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        window.addEventListener('appReady', () => {
+            loadMatches();
+            checkUrlForMatch();
+        });
+        // Fallback if appReady is missed
+        if (typeof App !== 'undefined' && App.isReady) {
+            loadMatches();
+            checkUrlForMatch();
+        }
+
+        // Bind to window to ensure global access
+        window.openMatchDetail = function (matchId) {
+            console.log('Opening match details for:', matchId);
+            try {
+                const matches = DB.getMatches();
+                // Find match by ID
+                let match = matches.find(m => m.id === matchId);
+
+                // Fallback for matches accessed by numeric index (backward compatibility)
+                if (!match) {
+                    const idx = parseInt(matchId);
+                    if (!isNaN(idx) && matches[idx]) {
+                        match = matches[idx];
+                    }
+                }
+
+                if (!match) {
+                    console.error('Match not found:', matchId);
+                    alert('Maç verisi bulunamadı! ID: ' + matchId);
+                    return;
+                }
+
+                renderMatchDetail(match);
+                const modal = document.getElementById('match-detail-modal');
+                if (modal) modal.classList.add('active');
+            } catch (e) {
+                console.error('Error opening match detail:', e);
+                alert('Detaylar açılırken hata oluştu: ' + e.message);
+            }
+        };
+
+        window.closeModal = function (id) {
+            document.getElementById(id).classList.remove('active');
+        };
+
+        function checkUrlForMatch() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const matchId = urlParams.get('matchId');
+            if (matchId) {
+                window.openMatchDetail(matchId);
+            }
+        }
+
+        function loadMatches() {
+            const container = document.getElementById('matches-list');
+            // Clone first with slice(), then reverse to avoid mutating DB source
+            const matches = DB.getMatches().slice().reverse();
+
+            if (matches.length === 0) {
+                container.innerHTML = '<div class="card"><div class="empty-state">Henüz maç yok. <a href="draft.html">Draft başlat</a></div></div>';
+                return;
+            }
+
+            container.innerHTML = `<div class="grid grid-cols-2">${matches.map(m => {
+                const blueWon = m.winnerTeam === 'blue' || m.winner === 'blue';
+                // Fallback ID if missing
+                const mId = m.id || 'err_' + Math.random();
+
+                return `
+                    <div class="card match-row ${blueWon ? 'victory' : 'defeat'}" 
+                         onclick="window.openMatchDetail('${mId}')" 
+                         style="cursor:pointer; transition: transform 0.2s;">
+                         
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="text-muted">${Utils.formatDate(m.date)}</span>
+                            <span class="badge ${blueWon ? 'badge-blue' : 'badge-red'}">${blueWon ? 'Mavi Kazandı' : 'Kırmızı Kazandı'}</span>
+                        </div>
+                        <div class="grid-teams">
+                            <div class="team-col">
+                                <div class="text-cyan mb-2" style="font-weight:bold">${m.blueTeamName || 'Mavi'}</div>
+                                ${(m.blueTeam || []).map(p => `
+                                    <div class="player-item">
+                                        <img src="${Utils.getChampionIcon(p.championId || p.champion)}" style="width:28px;height:28px;border-radius:4px;" onerror="this.src='${Utils.getProfileIcon(p.name)}'">
+                                        <span class="player-name">${Utils.escapeHtml(p.name)}</span>
+                                        <span class="text-muted" style="font-size:12px">${p.k || 0}/${p.d || 0}/${p.a || 0}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <div class="team-col">
+                                <div class="text-lose mb-2" style="font-weight:bold">${m.redTeamName || 'Kırmızı'}</div>
+                                ${(m.redTeam || []).map(p => `
+                                    <div class="player-item">
+                                        <img src="${Utils.getChampionIcon(p.championId || p.champion)}" style="width:28px;height:28px;border-radius:4px;" onerror="this.src='${Utils.getProfileIcon(p.name)}'">
+                                        <span class="player-name">${Utils.escapeHtml(p.name)}</span>
+                                        <span class="text-muted" style="font-size:12px">${p.k || 0}/${p.d || 0}/${p.a || 0}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <div style="text-align:center; margin-top:10px; font-size:12px; color:var(--text-tertiary)">Detaylar için tıkla</div>
+                    </div>
+                `;
+            }).join('')}</div>`;
+        }
+
+        function renderMatchDetail(match) {
+            const container = document.getElementById('match-detail-content');
+
+            // Calculate totals for bars
+            const getTeamTotal = (team, key) => team.reduce((s, p) => s + (parseInt(p[key]) || 0), 0);
+            const getTeamTotalFloat = (team, key) => team.reduce((s, p) => s + (parseFloat(String(p[key]).replace('k', '')) * (String(p[key]).includes('k') ? 1000 : 1)), 0);
+
+            const blueKills = getTeamTotal(match.blueTeam, 'kills');
+            const redKills = getTeamTotal(match.redTeam, 'kills');
+            const blueGold = getTeamTotalFloat(match.blueTeam, 'gold');
+            const redGold = getTeamTotalFloat(match.redTeam, 'gold');
+            const blueDmg = getTeamTotalFloat(match.blueTeam, 'damage');
+            const redDmg = getTeamTotalFloat(match.redTeam, 'damage');
+
+            const maxDmg = Math.max(...match.blueTeam.map(p => parseFloat(p.damage) || 0), ...match.redTeam.map(p => parseFloat(p.damage) || 0));
+
+            const renderTeamTable = (team, teamName, isBlue) => {
+                const headerClass = isBlue ? 'team-header-blue' : 'team-header-red';
+                const teamColorClass = isBlue ? 'text-cyan' : 'text-lose';
+                const result = (isBlue && match.winnerTeam === 'blue') || (!isBlue && match.winnerTeam === 'red') ? 'KAZANDI' : 'KAYBETTİ';
+
+                return `
+                    <div class="card mb-6" style="padding:0; overflow:hidden;">
+                        <div class="team-header-bar ${headerClass}">
+                            <span class="${teamColorClass}" style="font-weight:bold; font-size:1.1rem;">${teamName}</span>
+                            <span class="badge ${isBlue ? 'badge-blue' : 'badge-red'}" style="margin:0">${result}</span>
+                        </div>
+                        <div class="team-table-container">
+                            <table class="team-table" style="width: 100%; border-collapse: collapse;">
+                                <thead>
+                                    <tr style="color: var(--orange); border-bottom: 1px solid var(--border-color);">
+                                        <th style="padding: 12px; text-align: left;">Oyuncu</th>
+                                        <th style="padding: 12px; text-align: center;">KDA</th>
+                                        <th style="padding: 12px; text-align: center;">Hasar</th>
+                                        <th style="padding: 12px; text-align: center;">Altın</th>
+                                        <th style="padding: 12px; text-align: center;">CS</th>
+                                        <th style="padding: 12px; text-align: left;">Eşyalar</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${team.map(p => {
+                    const champId = Utils.formatChampionName(p.championId || p.champion);
+                    const kda = Utils.formatKDA(p.kills, p.deaths, p.assists);
+                    return `
+                                            <tr style="border-bottom: 1px solid var(--bg-primary);">
+                                                <td style="padding: 8px 12px;">
+                                                    <div class="flex items-center gap-3">
+                                                        <img src="${Utils.getChampionIcon(champId)}" style="width:40px;height:40px;border-radius:4px;">
+                                                        <div>
+                                                            <div style="font-weight:bold">${Utils.escapeHtml(p.name)}</div>
+                                                            <div class="flex items-center gap-1 text-muted" style="font-size:11px">
+                                                                <img src="${Utils.getRoleIcon(p.role)}" style="width:12px;height:12px">
+                                                                ${p.role}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="kda-cell" style="padding: 8px 12px; text-align: center;">
+                                                    <div style="font-weight:bold; font-size:14px;">${p.kills} / ${p.deaths} / ${p.assists}</div>
+                                                    <div style="font-size:11px; color:${kda.color}">${kda.kda}:1 KDA</div>
+                                                </td>
+                                                <td style="padding: 8px 12px; text-align: center;">
+                                                    <div class="text-lose" style="font-weight:bold;">${p.damage || 0}</div>
+                                                </td>
+                                                <td style="padding: 8px 12px; text-align: center;">
+                                                    <div style="font-weight:bold; color: var(--gold);">${p.gold || 0}</div>
+                                                </td>
+                                                <td style="padding: 8px 12px; text-align: center; font-weight:bold; color: #ffb74d;">${p.cs || 0}</td>
+                                                <td style="padding: 8px 12px;">
+                                                    <div class="item-grid" style="justify-content: flex-start;">
+                                                        ${(p.items || []).map(item => `
+                                                            <div class="item-icon" title="${item}">${item.substring(0, 2)}</div>
+                                                        `).join('')}
+                                                        ${(!p.items || p.items.length === 0) ? '<span class="text-muted" style="font-size:11px">-</span>' : ''}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        `;
+                }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            };
+
+            const renderBar = (label, val1, val2, color1, color2) => {
+                const total = val1 + val2;
+                if (total === 0) return '';
+                const p1 = (val1 / total) * 100;
+                const p2 = (val2 / total) * 100;
+
+                return `
+                    <div class="comparison-row">
+                        <div class="comparison-label">
+                            <span style="color:${color1}">${val1.toLocaleString()}</span>
+                            <span class="text-muted">${label}</span>
+                            <span style="color:${color2}">${val2.toLocaleString()}</span>
+                        </div>
+                        <div class="comparison-bar-wrapper">
+                            <div style="width: ${p1}%; background: ${color1}"></div>
+                            <div style="width: ${p2}%; background: ${color2}"></div>
+                        </div>
+                    </div>
+                `;
+            };
+
+            container.innerHTML = `
+                <div style="text-align:center; margin-bottom:var(--space-6)">
+                    <div style="font-size:3rem; font-weight:bold;">
+                        <span class="text-cyan">${blueKills}</span>
+                        <span class="text-muted" style="font-size:1.5rem; margin:0 10px">VS</span>
+                        <span class="text-lose">${redKills}</span>
+                    </div>
+                    <div class="text-muted">${Utils.formatDate(match.date)}</div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-6" style="align-items: start;">
+                    <div>
+                        ${renderTeamTable(match.blueTeam, match.blueTeamName || 'Mavi Takım', true)}
+                    </div>
+                    <div>
+                        ${renderTeamTable(match.redTeam, match.redTeamName || 'Kırmızı Takım', false)}
+                    </div>
+                </div>
+
+                <div class="card mt-6">
+                    <h3 class="card-title mb-4">Maç İstatistikleri</h3>
+                    <div style="max-width:600px; margin:0 auto">
+                        ${renderBar('Öldürme', blueKills, redKills, 'var(--cyan)', 'var(--lose)')}
+                        ${renderBar('Altın', blueGold, redGold, 'var(--gold)', 'var(--gold)')} 
+                        ${renderBar('Hasar', blueDmg, redDmg, 'var(--cyan)', 'var(--lose)')}
+                    </div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+
+</html>

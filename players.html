@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FFLegendsHub | Oyuncular</title>
+    <link rel="stylesheet" href="css/main.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="dashboard.html" class="logo">
+                    <img src="https://i.hizliresim.com/h701fas.jpg" class="logo-icon" alt="FF">
+                    <span class="logo-text">FFLegendsHub</span>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Ana Menü</div>
+                    <a href="index.html" class="nav-link"><span class="nav-emoji">📊</span><span>Önizleme</span></a>
+                    <a href="players.html" class="nav-link active"><span
+                            class="nav-emoji">👥</span><span>Oyuncular</span></a>
+                    <a href="matches.html" class="nav-link"><span class="nav-emoji">📜</span><span>Geçmiş
+                            Maçlar</span></a>
+                    <a href="draft.html" class="nav-link"><span class="nav-emoji">⚔️</span><span>Draft Yap</span></a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">İstatistikler</div>
+                    <a href="leaderboard.html" class="nav-link"><span class="nav-emoji">🏆</span><span>Liderlik
+                            Tablosu</span></a>
+                    <a href="champions.html" class="nav-link"><span
+                            class="nav-emoji">⭐</span><span>Şampiyonlar</span></a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Sistem</div>
+                    <a href="settings.html" class="nav-link"><span class="nav-emoji">⚙️</span><span>Ayarlar</span></a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div id="players-list-view">
+                <div class="page-header">
+                    <h1 class="page-title">👥 Oyuncular</h1>
+                    <p class="page-description">Tüm oyuncuların istatistikleri.</p>
+                </div>
+
+                <div class="mb-6">
+                    <input type="text" id="player-search" class="form-input" placeholder="🔍 Oyuncu ara..."
+                        style="max-width: 300px;">
+                </div>
+
+                <div class="grid grid-cols-3" id="players-grid"></div>
+            </div>
+
+            <div id="player-detail-view" class="hidden">
+                <div class="mb-6">
+                    <button class="btn btn-secondary" onclick="PlayersPage.showPlayersList()">← Geri</button>
+                </div>
+                <div id="player-detail-content"></div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/db.js"></script>
+    <script src="js/stats.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/pages/players.js"></script>
+</body>
+
+</html>

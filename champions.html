@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FFLegendsHub | Şampiyonlar</title>
+    <link rel="stylesheet" href="css/main.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="dashboard.html" class="logo">
+                    <img src="https://i.hizliresim.com/h701fas.jpg" class="logo-icon" alt="FF">
+                    <span class="logo-text">FFLegendsHub</span>
+                </a>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Ana Menü</div>
+                    <a href="index.html" class="nav-link"><span class="nav-emoji">📊</span><span>Önizleme</span></a>
+                    <a href="players.html" class="nav-link"><span class="nav-emoji">👥</span><span>Oyuncular</span></a>
+                    <a href="matches.html" class="nav-link"><span class="nav-emoji">📜</span><span>Geçmiş
+                            Maçlar</span></a>
+                    <a href="draft.html" class="nav-link"><span class="nav-emoji">⚔️</span><span>Draft Yap</span></a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">İstatistikler</div>
+                    <a href="leaderboard.html" class="nav-link"><span class="nav-emoji">🏆</span><span>Liderlik
+                            Tablosu</span></a>
+                    <a href="champions.html" class="nav-link active"><span
+                            class="nav-emoji">⭐</span><span>Şampiyonlar</span></a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Sistem</div>
+                    <a href="settings.html" class="nav-link"><span class="nav-emoji">⚙️</span><span>Ayarlar</span></a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="page-header">
+                <h1 class="page-title">⭐ Şampiyon İstatistikleri</h1>
+                <p class="page-description">Tüm şampiyonların performans istatistikleri.</p>
+            </div>
+
+            <div class="grid grid-cols-3 mb-6" id="champ-stats-header"></div>
+
+            <div class="card">
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th style="color: #ff8c00;">Şampiyon</th>
+                                <th class="text-center" style="color: #ff8c00;">Oynanan</th>
+                                <th class="text-center" style="color: #ff8c00;">Win Rate</th>
+                                <th class="text-center" style="color: #ff8c00;">KDA</th>
+                            </tr>
+                        </thead>
+                        <tbody id="champ-stats-tbody">
+                            <tr>
+                                <td colspan="4" class="empty-state">Veri yok.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/db.js"></script>
+    <script src="js/stats.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        window.addEventListener('appReady', loadChampions);
+        if (typeof App !== 'undefined' && App.isReady) loadChampions();
+
+        function loadChampions() {
+            const champions = Stats.calculateChampionStats().sort((a, b) => b.winRate - a.winRate);
+            const headerContainer = document.getElementById('champ-stats-header');
+            const tbody = document.getElementById('champ-stats-tbody');
+
+            if (champions.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Henüz şampiyon verisi yok.</td></tr>';
+                headerContainer.innerHTML = '';
+                return;
+            }
+
+            // Calculations
+            const validChamps = champions.filter(c => c.matches >= 1); // Consider all with at least 1 match
+
+            const topPlayed = champions[0];
+            const topWR = [...validChamps].sort((a, b) => b.winRate - a.winRate)[0];
+            const bestKDA = [...validChamps].sort((a, b) => parseFloat(b.kda) - parseFloat(a.kda))[0];
+            const worstWR = [...validChamps].sort((a, b) => a.winRate - b.winRate)[0];
+            const worstKDA = [...validChamps].sort((a, b) => parseFloat(a.kda) - parseFloat(b.kda))[0];
+
+            // Helpers for cards
+            const renderCard = (title, icon, champ, value, valueClass) => {
+                if (!champ) return `
+                    <div class="stat-card">
+                        <div class="stat-card-header"><span class="icon">${icon}</span> ${title}</div>
+                        <div class="stat-card-content"><div class="text-muted">-</div></div>
+                    </div>`;
+
+                return `
+                    <div class="stat-card">
+                        <div class="stat-card-header"><span class="icon">${icon}</span> ${title}</div>
+                        <div class="stat-card-content">
+                            <img src="${Utils.getChampionIcon(champ.id)}" style="width:48px;height:48px;border-radius:8px;" onerror="this.src='${Utils.getProfileIcon(champ.id)}'">
+                            <div class="stat-card-info">
+                                <div class="stat-card-name">${champ.id}</div>
+                                <div class="stat-card-value ${valueClass}">${value}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            };
+
+            // New Layout: 4 Top Cards, then Most Played + Total row
+            headerContainer.className = 'flex flex-col gap-6 mb-6';
+            headerContainer.innerHTML = `
+                <!-- Top Stats Row -->
+                <div class="grid grid-cols-4 gap-4">
+                    ${renderCard('EN YÜKSEK WR', '🏆', topWR, topWR?.winRate + '%', 'text-win')}
+                    ${renderCard('EN İYİ KDA', '⚔️', bestKDA, bestKDA?.kda, 'text-cyan')}
+                    ${renderCard('EN KÖTÜ WR', '💀', worstWR, worstWR?.winRate + '%', 'text-lose')}
+                    ${renderCard('EN KÖTÜ KDA', '💔', worstKDA, worstKDA?.kda, 'text-lose')}
+                </div>
+
+                <!-- Secondary Row -->
+                <div class="grid grid-cols-2 gap-4">
+                    <!-- Most Played -->
+                    <div class="stat-card">
+                        <div class="stat-card-header"><span class="icon">🔥</span> EN ÇOK OYNANAN</div>
+                        <div class="stat-card-content">
+                            <img src="${Utils.getChampionIcon(topPlayed.id)}" style="width:48px;height:48px;border-radius:8px;" onerror="this.src='${Utils.getProfileIcon(topPlayed.id)}'">
+                            <div class="stat-card-info">
+                                <div class="stat-card-name">${topPlayed.id}</div>
+                                <div class="stat-card-value text-orange">${topPlayed.matches} maç</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Total Count (Resized) -->
+                    <div class="stat-card">
+                        <div class="stat-card-header"><span class="icon">📊</span> TOPLAM OYNANAN ŞAMPİYON</div>
+                         <div class="stat-card-content" style="justify-content: center; padding: 10px;">
+                            <div class="stat-card-value text-orange" style="font-size:2.5rem">${champions.length}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            tbody.innerHTML = champions.map(c => `
+                <tr>
+                    <td>
+                        <div class="flex items-center gap-3">
+                            <img src="${Utils.getChampionIcon(c.id)}" style="width:36px;height:36px;border-radius:6px;" onerror="this.src='${Utils.getProfileIcon(c.id)}'">
+                            <span style="font-weight:var(--font-semibold)">${c.id}</span>
+                        </div>
+                    </td>
+                    <td class="text-center">${c.matches}</td>
+                    <td class="text-center ${c.winRate >= 50 ? 'text-win' : 'text-lose'}" style="font-weight:bold">${c.winRate}%</td>
+                    <td class="text-center text-orange">${c.kda}</td>
+                </tr>
+            `).join('');
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="FFLegendsHub - League of Legends 5v5 Draft ve İstatistik Sistemi">
+    <title>FFLegendsHub | Dashboard</title>
+    <link rel="stylesheet" href="css/main.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="index.html" class="logo">
+                    <img src="https://i.hizliresim.com/h701fas.jpg" class="logo-icon" alt="FF">
+                    <span class="logo-text">FFLegendsHub</span>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Ana Menü</div>
+                    <a href="index.html" class="nav-link active">
+                        <span class="nav-emoji">📊</span>
+                        <span>Önizleme</span>
+                    </a>
+                    <a href="players.html" class="nav-link">
+                        <span class="nav-emoji">👥</span>
+                        <span>Oyuncular</span>
+                    </a>
+                    <a href="matches.html" class="nav-link">
+                        <span class="nav-emoji">📜</span>
+                        <span>Geçmiş Maçlar</span>
+                    </a>
+                    <a href="draft.html" class="nav-link">
+                        <span class="nav-emoji">⚔️</span>
+                        <span>Draft Yap</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">İstatistikler</div>
+                    <a href="leaderboard.html" class="nav-link">
+                        <span class="nav-emoji">🏆</span>
+                        <span>Liderlik Tablosu</span>
+                    </a>
+                    <a href="champions.html" class="nav-link">
+                        <span class="nav-emoji">⭐</span>
+                        <span>Şampiyonlar</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Sistem</div>
+                    <a href="settings.html" class="nav-link">
+                        <span class="nav-emoji">⚙️</span>
+                        <span>Ayarlar</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1 class="page-title">ÖNİZLEME (DASHBOARD)</h1>
+                <p class="page-description">Takım istatistiklerine genel bakış.</p>
+            </div>
+
+            <!-- 4 Stat Cards Row -->
+            <div class="grid grid-cols-4 mb-6" style="grid-template-columns: repeat(4, 1fr) 1.5fr;">
+                <!-- EN YÜKSEK WIN RATE -->
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <span class="icon">🏅</span>
+                        EN YÜKSEK WIN RATE
+                    </div>
+                    <div class="stat-card-content" id="top-wr-card">
+                        <div class="stat-card-avatar">
+                            <img src="" alt="" id="top-wr-avatar">
+                        </div>
+                        <div class="stat-card-info">
+                            <div class="stat-card-name" id="top-wr-name">-</div>
+                            <div class="stat-card-value text-win" id="top-wr-value">0%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- EN İYİ KDA -->
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <span class="icon">⚔️</span>
+                        EN İYİ KDA
+                    </div>
+                    <div class="stat-card-content" id="top-kda-card">
+                        <div class="stat-card-avatar">
+                            <img src="" alt="" id="top-kda-avatar">
+                        </div>
+                        <div class="stat-card-info">
+                            <div class="stat-card-name" id="top-kda-name">-</div>
+                            <div class="stat-card-value text-cyan" id="top-kda-value">0.0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- EN KÖTÜ WIN RATE -->
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <span class="icon">💀</span>
+                        EN KÖTÜ WIN RATE
+                    </div>
+                    <div class="stat-card-content" id="worst-wr-card">
+                        <div class="stat-card-avatar">
+                            <img src="" alt="" id="worst-wr-avatar">
+                        </div>
+                        <div class="stat-card-info">
+                            <div class="stat-card-name" id="worst-wr-name">-</div>
+                            <div class="stat-card-value text-lose" id="worst-wr-value">0%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- EN KÖTÜ KDA -->
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <span class="icon">💔</span>
+                        EN KÖTÜ KDA
+                    </div>
+                    <div class="stat-card-content" id="worst-kda-card">
+                        <div class="stat-card-avatar">
+                            <img src="" alt="" id="worst-kda-avatar">
+                        </div>
+                        <div class="stat-card-info">
+                            <div class="stat-card-name" id="worst-kda-name">-</div>
+                            <div class="stat-card-value text-lose" id="worst-kda-value">0.0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- EN ÇOK OYNANAN ŞAMPİYON -->
+                <div class="most-played-card">
+                    <div class="most-played-header">
+                        <img src="" alt="" class="most-played-img" id="most-played-img">
+                        <div>
+                            <div class="most-played-label">En Çok Oynanan</div>
+                            <div class="most-played-name" id="most-played-name">-</div>
+                        </div>
+                    </div>
+                    <table class="champ-stats-table" id="top-champs-table">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th style="color: #ff8c00;">Şampiyon</th>
+                                <th style="color: #ff8c00;">Oynadı</th>
+                                <th style="color: #ff8c00;">KDA</th>
+                                <th style="color: #ff8c00;">Galibiyet</th>
+                            </tr>
+                        </thead>
+                        <tbody id="top-champs-tbody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Second Row: Total Matches + Recent Games + Leaderboard -->
+            <div class="grid" style="grid-template-columns: 120px 1fr 1fr; gap: var(--space-6);">
+                <!-- TOPLAM OYNANAN MAÇ -->
+                <div class="big-number-card">
+                    <div class="big-number" id="total-matches">0</div>
+                    <div class="big-number-label">Toplam oynanan maç</div>
+                </div>
+
+                <!-- RECENT GAMES -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">📜 Recent games</h3>
+                        <a href="matches.html" class="btn btn-ghost btn-sm">Tümü</a>
+                    </div>
+                    <div id="recent-games">
+                        <!-- Recent games will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- LİDERLİK TABLOSU -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">🏆 Liderlik Tablosu</h3>
+                        <a href="leaderboard.html" class="btn btn-ghost btn-sm">Tümünü Gör</a>
+                    </div>
+                    <div id="leaderboard-preview">
+                        <!-- Leaderboard will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/utils.js"></script>
+    <script src="js/db.js"></script>
+    <script src="js/stats.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        // Dashboard Page Logic
+        window.addEventListener('appReady', loadDashboard);
+        if (typeof App !== 'undefined' && App.isReady) loadDashboard();
+
+        function loadDashboard() {
+            loadStatCards();
+            loadMostPlayedChampion();
+            loadTotalMatches();
+            loadRecentGames();
+            loadLeaderboardPreview();
+        }
+
+        function loadStatCards() {
+            const stats = Stats.getDashboardStats();
+            if (!stats) return;
+
+            const updateCard = (id, playerStats, valueText, colorClass) => {
+                const card = document.getElementById(id);
+                if (!card || !playerStats) return;
+
+                const player = playerStats.player;
+                card.style.cursor = 'pointer';
+                card.onclick = () => window.location.href = `players.html?id=${player.id}`;
+
+                // Update avatar using Utils
+                const avatarContainer = card.querySelector('.stat-card-avatar');
+                if (avatarContainer) {
+                    avatarContainer.innerHTML = Utils.renderAvatarHtml(player, 'avatar-md');
+                }
+
+                const nameEl = card.querySelector('.stat-card-name');
+                if (nameEl) nameEl.textContent = player.nickname || player.name;
+
+                const valueEl = card.querySelector('.stat-card-value');
+                if (valueEl) {
+                    valueEl.textContent = valueText;
+                    valueEl.className = `stat-card-value ${colorClass}`;
+                }
+            };
+
+            // Top WR
+            const topWR = stats.topWinRatePlayer;
+            updateCard('top-wr-card', topWR, topWR ? topWR.winRate + '%' : '0%', 'text-win');
+
+            // Top KDA
+            const topKDA = stats.topKDAPlayer;
+            updateCard('top-kda-card', topKDA, topKDA ? parseFloat(topKDA.kda).toFixed(1) : '0.0', 'text-cyan');
+
+            // Worst WR
+            const worstWR = stats.worstWinRatePlayer;
+            updateCard('worst-wr-card', worstWR, worstWR ? worstWR.winRate + '%' : '0%', 'text-lose');
+
+            // Worst KDA
+            const worstKDA = stats.worstKDAPlayer;
+            updateCard('worst-kda-card', worstKDA, worstKDA ? parseFloat(worstKDA.kda).toFixed(1) : '0.0', 'text-lose');
+        }
+
+        function loadMostPlayedChampion() {
+            const champions = Stats.calculateChampionStats();
+            if (champions.length === 0) {
+                document.getElementById('most-played-img').src = 'https://ddragon.leagueoflegends.com/cdn/14.24.1/img/profileicon/29.png';
+                document.getElementById('most-played-name').textContent = '-';
+                return;
+            }
+
+            const top = champions[0];
+            document.getElementById('most-played-img').src = Utils.getChampionIcon(top.id);
+            document.getElementById('most-played-img').onerror = function () { this.src = Utils.getProfileIcon(top.id); };
+            document.getElementById('most-played-name').textContent = top.id;
+
+            // Top 3 champions table
+            const tbody = document.getElementById('top-champs-tbody');
+            tbody.innerHTML = champions.slice(0, 3).map((c, i) => {
+                let rankColor = '#718096'; // default
+                if (i === 0) rankColor = '#FFD700'; // Gold
+                if (i === 1) rankColor = '#C0C0C0'; // Silver
+                if (i === 2) rankColor = '#CD7F32'; // Bronze
+
+                return `
+                <tr>
+                    <td style="width: 40px; padding-left:0;">
+                        <div style="width: 24px; height: 24px; background: ${rankColor}; color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 11px;">#${i + 1}</div>
+                    </td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <img src="${Utils.getChampionIcon(c.id)}" style="width:24px;height:24px;border-radius:4px;" onerror="this.src='${Utils.getProfileIcon(c.id)}'">
+                            <span>${c.id}</span>
+                        </div>
+                    </td>
+                    <td>${c.matches}</td>
+                    <td>${c.kda}</td>
+                    <td class="${c.winRate >= 50 ? 'text-win' : 'text-lose'}">${c.winRate}%</td>
+                </tr>
+            `}).join('');
+        }
+
+        function loadTotalMatches() {
+            document.getElementById('total-matches').textContent = DB.getMatches().length;
+        }
+
+        function loadRecentGames() {
+            const container = document.getElementById('recent-games');
+            const matches = DB.getMatches().slice(-3).reverse();
+
+            if (matches.length === 0) {
+                container.innerHTML = '<div class="empty-state">Henüz maç yok.</div>';
+                return;
+            }
+
+            container.innerHTML = matches.map(m => {
+                const isBlueWin = m.winnerTeam === 'blue' || m.winner === 'blue';
+                const resultClass = isBlueWin ? 'victory' : 'defeat';
+                const resultText = isBlueWin ? 'Victory' : 'Defeat';
+                const resultColor = isBlueWin ? 'text-win' : 'text-lose';
+
+                // Get first player's champion for display
+                const firstBlue = m.blueTeam?.[0];
+                const champImg = firstBlue ? Utils.getChampionIcon(firstBlue.championId || firstBlue.champion) : '';
+
+                return `
+                    <div class="match-row ${resultClass}">
+                        <div class="flex items-center gap-3">
+                            <img src="${champImg}" style="width:48px;height:48px;border-radius:8px;" onerror="this.src='${Utils.getProfileIcon('match')}'">
+                            <div>
+                                <div class="${resultColor}" style="font-weight:bold;">${resultText}</div>
+                                <div class="text-muted" style="font-size:var(--text-xs);">
+                                    ${m.blueTeamName || 'Mavi'} vs ${m.redTeamName || 'Kırmızı'}
+                                </div>
+                            </div>
+                            <div style="margin-left:auto; display:flex; gap:4px;">
+                                ${(m.blueTeam || []).slice(0, 5).map(p => `
+                                    <img src="${Utils.getChampionIcon(p.championId || p.champion)}" 
+                                         style="width:24px;height:24px;border-radius:4px;" 
+                                         onerror="this.src='${Utils.getProfileIcon(p.name)}'">
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function loadLeaderboardPreview() {
+            const container = document.getElementById('leaderboard-preview');
+            const leaderboard = Stats.getLeaderboard('winRate', 5, 1);
+
+            if (leaderboard.length === 0) {
+                container.innerHTML = '<div class="empty-state">Henüz oyuncu yok.</div>';
+                return;
+            }
+
+            container.innerHTML = leaderboard.map((s, i) => {
+                const player = s.player;
+                let rankClass = 'normal';
+                if (i === 0) rankClass = 'gold';
+                else if (i === 1) rankClass = 'silver';
+                else if (i === 2) rankClass = 'bronze';
+
+                return `
+                    <div class="player-row" onclick="window.location.href='players.html?id=${player.id}'" style="cursor:pointer">
+                        <div class="player-rank ${rankClass}">#${i + 1}</div>
+                        ${Utils.renderAvatarHtml(player, 'avatar-sm')}
+                        <div style="flex:1;font-weight:var(--font-medium)">${Utils.escapeHtml(player.nickname || player.name)}</div>
+                        <div class="${s.winRate >= 50 ? 'text-win' : 'text-lose'}" style="font-weight:bold">${s.winRate}%</div>
+                        <div class="text-muted" style="margin-left:var(--space-2)">${s.kda} KDA</div>
+                    </div>
+                `;
+            }).join('');
+        }
+    </script>
+</body>
+
+</html>

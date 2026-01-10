@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FFLegendsHub | Liderlik Tablosu</title>
+    <link rel="stylesheet" href="css/main.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="dashboard.html" class="logo">
+                    <img src="https://i.hizliresim.com/h701fas.jpg" class="logo-icon" alt="FF">
+                    <span class="logo-text">FFLegendsHub</span>
+                </a>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Ana Menü</div>
+                    <a href="index.html" class="nav-link"><span class="nav-emoji">📊</span><span>Önizleme</span></a>
+                    <a href="players.html" class="nav-link"><span class="nav-emoji">👥</span><span>Oyuncular</span></a>
+                    <a href="matches.html" class="nav-link"><span class="nav-emoji">📜</span><span>Geçmiş
+                            Maçlar</span></a>
+                    <a href="draft.html" class="nav-link"><span class="nav-emoji">⚔️</span><span>Draft Yap</span></a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">İstatistikler</div>
+                    <a href="leaderboard.html" class="nav-link active"><span class="nav-emoji">🏆</span><span>Liderlik
+                            Tablosu</span></a>
+                    <a href="champions.html" class="nav-link"><span
+                            class="nav-emoji">⭐</span><span>Şampiyonlar</span></a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Sistem</div>
+                    <a href="settings.html" class="nav-link"><span class="nav-emoji">⚙️</span><span>Ayarlar</span></a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="page-header">
+                <h1 class="page-title">🏆 Liderlik Tablosu</h1>
+                <p class="page-description">Oyuncuların performans sıralaması.</p>
+            </div>
+
+            <div class="flex gap-4 mb-6">
+                <button class="btn btn-primary" data-sort="winRate" onclick="loadLeaderboard('winRate', this)">Win
+                    Rate</button>
+                <button class="btn btn-secondary" data-sort="kda" onclick="loadLeaderboard('kda', this)">KDA</button>
+                <button class="btn btn-secondary" data-sort="matches" onclick="loadLeaderboard('matches', this)">Maç
+                    Sayısı</button>
+            </div>
+
+            <div class="card">
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th style="width:60px; color: #ff8c00;" class="text-center">Sıra</th>
+                                <th style="width: 25%; color: #ff8c00;">Oyuncu</th>
+                                <th style="width:140px; text-align: left; padding-left: 20px; color: #ff8c00;">Rol</th>
+                                <th class="text-center" style="color: #ff8c00;">Maç</th>
+                                <th class="text-center" style="color: #ff8c00;">W/L</th>
+                                <th class="text-center" style="color: #ff8c00;">Win Rate</th>
+                                <th class="text-center" style="color: #ff8c00;">KDA</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboard-tbody">
+                            <tr>
+                                <td colspan="7" class="empty-state">Veri yok.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/db.js"></script>
+    <script src="js/stats.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        window.addEventListener('appReady', () => loadLeaderboard('winRate'));
+        if (typeof App !== 'undefined' && App.isReady) loadLeaderboard('winRate');
+
+        function loadLeaderboard(sortBy, btn) {
+            document.querySelectorAll('[data-sort]').forEach(b => {
+                b.classList.remove('btn-primary');
+                b.classList.add('btn-secondary');
+            });
+            if (btn) {
+                btn.classList.add('btn-primary');
+                btn.classList.remove('btn-secondary');
+            } else {
+                document.querySelector('[data-sort="' + sortBy + '"]')?.classList.add('btn-primary');
+                document.querySelector('[data-sort="' + sortBy + '"]')?.classList.remove('btn-secondary');
+            }
+
+            const tbody = document.getElementById('leaderboard-tbody');
+            const leaderboard = Stats.getLeaderboard(sortBy, 50, 1);
+
+            if (leaderboard.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Henüz oyuncu yok.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = leaderboard.map((s, i) => {
+                const player = s.player;
+                const initials = Utils.getInitials(player.name);
+                const avatarColor = Utils.getAvatarColor(player.name);
+                const role = Stats.getMainRole(player);
+                const roleIcon = Utils.getRoleIcon(role);
+                const roleName = Utils.getRoleName(role);
+
+                let rankClass = 'normal';
+                if (i === 0) rankClass = 'gold';
+                else if (i === 1) rankClass = 'silver';
+                else if (i === 2) rankClass = 'bronze';
+
+                return `
+                    <tr>
+                        <td class="text-center"><div class="player-rank ${rankClass}">#${i + 1}</div></td>
+                        <td>
+                            <div class="flex items-center gap-3" onclick="window.location.href='players.html?id=${player.id}'" style="cursor:pointer; transition:opacity 0.2s" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                                ${Utils.renderAvatarHtml(player)}
+                                <span class="player-name">${Utils.escapeHtml(player.nickname || player.name)}</span>
+                            </div>
+                        </td>
+                        <td style="text-align: left; padding-left: 20px;">
+                             <div class="flex items-center gap-2" title="${roleName}">
+                                 <img src="${roleIcon}" style="width: 20px; height: 20px; opacity: 1;">
+                                 <span style="font-size: var(--text-xs); color: var(--text-muted); font-weight: 500;">${roleName}</span>
+                             </div>
+                        </td>
+                        <td class="text-center">${s.totalMatches}</td>
+                        <td class="text-center"><span class="text-win">${s.wins}</span>/<span class="text-lose">${s.losses}</span></td>
+                        <td class="text-center ${s.winRate >= 50 ? 'text-win' : 'text-lose'}" style="font-weight:bold">${s.winRate}%</td>
+                        <td class="text-center text-orange">${s.kda}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LoL Draft Simulator</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Beaufort+Logo&family=Spiegel:wght@400;700&display=swap"
+        rel="stylesheet">
+    <!-- Note: Beaufort Logo and Spiegel are official-ish fonts, substituting with Orbitron/Roboto if not available or just using standard fallbacks for now. 
+         Let's use 'Cinzel' (serif) and 'Roboto' (sans) from Google Fonts as free alternatives to resemble LoL typography. -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Roboto:wght@300;400;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="background-globes"></div>
+
+    <div id="app">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <span class="full-logo">FF LEGENDS HUB</span>
+                <span class="short-logo">FF</span>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item active" data-view="dashboard">
+                    <span class="nav-icon">📊</span>
+                    <span class="nav-text">Önizleme</span>
+                </li>
+                <li class="nav-item" data-view="draft-setup">
+                    <span class="nav-icon">⚔️</span>
+                    <span class="nav-text">Draft Yap</span>
+                </li>
+                <li class="nav-item" data-view="past-matches">
+                    <span class="nav-icon">📜</span>
+                    <span class="nav-text">Geçmiş Maçlar</span>
+                </li>
+                <li class="nav-item" data-view="player-stats">
+                    <span class="nav-icon">👤</span>
+                    <span class="nav-text">Oyuncu Stats</span>
+                </li>
+                <li class="nav-item" data-view="champion-stats">
+                    <span class="nav-icon">🌟</span>
+                    <span class="nav-text">Şampiyon Stats</span>
+                </li>
+                <li class="nav-item" data-view="leaderboard">
+                    <span class="nav-icon">🏆</span>
+                    <span class="nav-text">Liderlik Tablosu</span>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Dashboard View -->
+            <section id="view-dashboard" class="content-view active">
+                <div class="dashboard-container" style="padding:30px;">
+                    <h1>Önizleme (Dashboard)</h1>
+                    <p class="welcome-text" style="color:#888;">Takım istatistiklerine genel bakış.</p>
+
+                    <div class="stats-grid" style="display:flex; gap:20px; flex-wrap:wrap; margin-top:20px;">
+                        <!-- Best WR -->
+                        <div class="stats-card orange-glow"
+                            style="flex:1; min-width:200px; padding:20px; background:rgba(0,0,0,0.5); border:1px solid #444;">
+                            <div class="card-title" style="color:#0ac8b9; font-size:0.9rem; margin-bottom:10px;">EN
+                                YÜKSEK WIN RATE</div>
+                            <div class="card-content" style="display:flex; align-items:center; gap:15px;">
+                                <div class="stat-icon" style="font-size:2rem;">👑</div>
+                                <div class="stat-info">
+                                    <div class="stat-name" id="dash-best-wr-name" style="font-weight:bold; color:#fff;">
+                                        -</div>
+                                    <div class="stat-value" id="dash-best-wr-val"
+                                        style="font-size:1.5rem; color:#0ac8b9;">-%</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Best KDA -->
+                        <div class="stats-card orange-glow"
+                            style="flex:1; min-width:200px; padding:20px; background:rgba(0,0,0,0.5); border:1px solid #444;">
+                            <div class="card-title" style="color:#c8aa6e; font-size:0.9rem; margin-bottom:10px;">EN İYİ
+                                KDA</div>
+                            <div class="card-content" style="display:flex; align-items:center; gap:15px;">
+                                <div class="stat-icon" style="font-size:2rem;">⚔️</div>
+                                <div class="stat-info">
+                                    <div class="stat-name" id="dash-best-kda-name"
+                                        style="font-weight:bold; color:#fff;">-</div>
+                                    <div class="stat-value" id="dash-best-kda-val"
+                                        style="font-size:1.5rem; color:#c8aa6e;">-</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Worst WR -->
+                        <div class="stats-card orange-glow"
+                            style="flex:1; min-width:200px; padding:20px; background:rgba(0,0,0,0.5); border:1px solid #444;">
+                            <div class="card-title" style="color:#ff4444; font-size:0.9rem; margin-bottom:10px;">EN KÖTÜ
+                                WIN RATE</div>
+                            <div class="card-content" style="display:flex; align-items:center; gap:15px;">
+                                <div class="stat-icon" style="font-size:2rem;">💀</div>
+                                <div class="stat-info">
+                                    <div class="stat-name" id="dash-worst-wr-name"
+                                        style="font-weight:bold; color:#fff;">-</div>
+                                    <div class="stat-value" id="dash-worst-wr-val"
+                                        style="font-size:1.5rem; color:#ff4444;">-%</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Worst KDA -->
+                        <div class="stats-card orange-glow"
+                            style="flex:1; min-width:200px; padding:20px; background:rgba(0,0,0,0.5); border:1px solid #444;">
+                            <div class="card-title" style="color:#aaa; font-size:0.9rem; margin-bottom:10px;">EN KÖTÜ
+                                KDA</div>
+                            <div class="card-content" style="display:flex; align-items:center; gap:15px;">
+                                <div class="stat-icon" style="font-size:2rem;">🥀</div>
+                                <div class="stat-info">
+                                    <div class="stat-name" id="dash-worst-kda-name"
+                                        style="font-weight:bold; color:#fff;">-</div>
+                                    <div class="stat-value" id="dash-worst-kda-val"
+                                        style="font-size:1.5rem; color:#aaa;">-</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Matches -->
+                        <div class="stats-card orange-glow"
+                            style="flex:1; min-width:300px; padding:20px; background:rgba(0,0,0,0.5); border:1px solid #444;">
+                            <div class="card-title" style="color:#aaa; font-size:0.9rem; margin-bottom:10px;">SON MAÇLAR
+                            </div>
+                            <div id="dash-recent-list" style="display:flex; flex-direction:column; gap:10px;">
+                                <div style="color:#666; font-style:italic;">Henüz maç yok.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW: DRAFT SETUP -->
+            <section id="view-draft-setup" class="content-view">
+                <div class="setup-container">
+                    <div class="setup-header">
+                        <h2>DRAFT SETUP</h2>
+                    </div>
+
+                    <div class="setup-form">
+                        <div class="input-group-row">
+                            <div class="input-block">
+                                <label>BLUE TEAM NAME</label>
+                                <input type="text" id="blue-team-name" class="hex-input" value="BLUE TEAM">
+                            </div>
+                            <div class="input-block">
+                                <label>RED TEAM NAME</label>
+                                <input type="text" id="red-team-name" class="hex-input" value="RED TEAM">
+                            </div>
+                        </div>
+
+                        <div class="setting-row">
+                            <label>GAME MODE</label>
+                            <div class="button-group" id="mode-select">
+                                <button class="setup-btn active" data-type="mode" data-value="normal">NORMAL</button>
+                                <button class="setup-btn" data-type="mode" data-value="fearless">FEARLESS</button>
+                            </div>
+                        </div>
+
+                        <div class="setting-row">
+                            <label>BEST OF...</label>
+                            <div class="segmented-control" id="bo-select">
+                                <button class="setup-btn active" data-type="bo" data-value="1">BO1</button>
+                                <button class="setup-btn" data-type="bo" data-value="3">BO3</button>
+                                <button class="setup-btn" data-type="bo" data-value="5">BO5</button>
+                            </div>
+                        </div>
+
+                        <div class="setting-row">
+                            <label>TURN DURATION (SEC)</label>
+                            <div class="segmented-control" id="timer-select">
+                                <button class="setup-btn" data-type="timer" data-value="15">15</button>
+                                <button class="setup-btn active" data-type="timer" data-value="30">30</button>
+                                <button class="setup-btn" data-type="timer" data-value="50">50</button>
+                            </div>
+                        </div>
+
+                        <button id="start-draft-btn" class="create-draft-btn">CREATE DRAFT</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW: DRAFT LINKS -->
+            <section id="view-draft-links" class="content-view">
+                <div class="links-container">
+                    <div class="success-icon">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <h1>Draft Oluşturuldu!</h1>
+                    <p class="subtitle">Aşağıdaki linkleri takım liderlerine gönderin:</p>
+
+                    <!-- Blue Team Card -->
+                    <div class="link-card blue-link">
+                        <div class="card-header">
+                            <span>Mavi Takım</span>
+                            <span>1</span>
+                        </div>
+                        <div class="link-row">
+                            <input type="text" id="link-blue-input" readonly value="Generating...">
+                            <button class="copy-btn" id="copy-blue-btn">
+                                <i class="far fa-copy"></i> Kopyala
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Red Team Card -->
+                    <div class="link-card red-link">
+                        <div class="card-header">
+                            <span>Kırmızı Takım</span>
+                            <span>2</span>
+                        </div>
+                        <div class="link-row">
+                            <input type="text" id="link-red-input" readonly value="Generating...">
+                            <button class="copy-btn" id="copy-red-btn">
+                                <i class="far fa-copy"></i> Kopyala
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Spectate Card -->
+                    <div class="link-card spectate-link">
+                        <div class="card-header">
+                            <span>Spectate</span>
+                        </div>
+                        <div class="link-row">
+                            <input type="text" id="link-spec-input" readonly value="Generating...">
+                            <button class="copy-btn" id="copy-spec-btn">
+                                <i class="far fa-copy"></i> Kopyala
+                            </button>
+                        </div>
+                    </div>
+
+                    <button id="confirm-links-btn" class="tamam-btn">Tamam</button>
+                </div>
+            </section>
+
+            <!-- Draft Simulator View -->
+            <section id="view-draft-simulator" class="content-view">
+                <!-- Ready Check Overlay -->
+                <div id="ready-check-overlay" class="ready-check-overlay">
+                    <div class="ready-container" id="ready-container-main">
+                        <h2 id="ready-title">DRAFT BAŞLAMADAN ÖNCE</h2>
+                        <p id="ready-subtitle">Her iki takım da "Hazır Ol" butonuna basmalıdır.</p>
+                        <div class="ready-buttons" id="ready-buttons-area">
+                            <div class="ready-side" id="blue-ready-zone">
+                                <span class="ready-team-name blue-ready-name">MAVİ TAKIM</span>
+                                <button id="blue-ready-btn" class="ready-btn blue">HAZIR OL</button>
+                                <span class="ready-status">BEKLENİYOR...</span>
+                            </div>
+                            <div class="ready-side" id="red-ready-zone">
+                                <span class="ready-team-name red-ready-name">KIRMIZI TAKIM</span>
+                                <button id="red-ready-btn" class="ready-btn red">HAZIR OL</button>
+                                <span class="ready-status">BEKLENİYOR...</span>
+                            </div>
+                        </div>
+                        <!-- Countdown (Hidden initially) -->
+                        <div id="start-countdown" class="start-countdown hidden">
+                            <span id="countdown-number">5</span>
+                            <span id="countdown-text">DRAFT BAŞLIYOR!</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Draft Summary Overlay (Hidden initially) -->
+                <div id="draft-summary-overlay" class="draft-summary-overlay hidden">
+                    <div class="summary-container">
+                        <div class="summary-header">
+                            <h1 id="summary-title">DRAFT TAMAMLANDI</h1>
+                            <h2 id="summary-bo-info" class="bo-title">Bo1: Game-1</h2>
+                        </div>
+
+                        <div class="summary-content">
+                            <!-- Blue Results -->
+                            <div class="summary-side blue-side">
+                                <div class="summary-bans" id="summary-blue-bans"></div>
+                                <div class="summary-picks" id="summary-blue-picks"></div>
+                            </div>
+
+                            <!-- Red Results -->
+                            <div class="summary-side red-side">
+                                <div class="summary-bans" id="summary-red-bans"></div>
+                                <div class="summary-picks" id="summary-red-picks"></div>
+                            </div>
+                        </div>
+
+                        <div class="summary-footer">
+                            <button id="open-result-modal-btn" class="hextech-btn" style="margin-right: 15px;">MAÇ
+                                SONUCUNU GİR</button>
+                            <button id="summary-close-btn" class="tamam-btn">KAPAT</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Match Result Input Modal -->
+                <div id="match-result-modal" class="draft-summary-overlay hidden" style="z-index: 2000;">
+                    <div class="summary-container" style="max-width: 900px;">
+                        <div class="summary-header">
+                            <h1>MAÇ SONUCU GİR</h1>
+                            <p style="color:#888;">Oyuncu istatistiklerini kaydetmek için bilgileri giriniz.</p>
+                        </div>
+
+                        <div class="match-result-form">
+                            <div class="winner-selection">
+                                <label class="winner-option blue-option">
+                                    <input type="radio" name="match-winner" value="blue">
+                                    <span>MAVİ TAKIM KAZANDI</span>
+                                </label>
+                                <label class="winner-option red-option">
+                                    <input type="radio" name="match-winner" value="red">
+                                    <span>KIRMIZI TAKIM KAZANDI</span>
+                                </label>
+                            </div>
+
+                            <div class="teams-input-container">
+                                <!-- Blue Inputs -->
+                                <div class="team-input-column blue-col">
+                                    <h3>MAVİ TAKIM (Blue)</h3>
+                                    <div id="blue-player-inputs" class="player-input-list"></div>
+                                </div>
+                                <!-- Red Inputs -->
+                                <div class="team-input-column red-col">
+                                    <h3>KIRMIZI TAKIM (Red)</h3>
+                                    <div id="red-player-inputs" class="player-input-list"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="summary-footer">
+                            <button id="save-match-btn" class="hextech-btn">KAYDET VE BİTİR</button>
+                            <button id="cancel-match-btn" class="tamam-btn"
+                                style="background:transparent; border:1px solid #444;">İPTAL</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Header: Timer, Phase Info, Bans -->
+                <header class="draft-header">
+                    <div class="team-bans blue-bans" id="blue-bans">
+                        <!-- Ban Slots generated by JS -->
+                    </div>
+
+                    <div class="timer-container">
+                        <div id="turn-timer" class="timer">60</div>
+                        <div id="phase-info" class="phase-info">WAITING TO START</div>
+                    </div>
+
+                    <div class="team-bans red-bans" id="red-bans">
+                        <!-- Ban Slots generated by JS -->
+                    </div>
+                </header>
+
+                <!-- Draft Body -->
+                <div class="draft-body">
+                    <!-- Blue Team Picks -->
+                    <section class="team-panel blue-team">
+                        <div class="team-label blue-label">BLUE</div>
+                        <div class="slots-container" id="blue-picks">
+                            <!-- Pick Slots generated by JS -->
+                        </div>
+                    </section>
+
+                    <!-- Champion Pool & Search -->
+                    <section class="champion-select-area">
+                        <!-- Series Info Bar -->
+                        <div id="series-info-bar" class="series-info-bar">
+                            <div class="series-label" id="series-info-toggle">Series Info <i
+                                    class="fas fa-chevron-down"></i></div>
+
+                            <!-- New: Dropdown Popup -->
+                            <div class="series-info-detail hidden" id="series-detail-popup">
+                                <h3>Series Info</h3>
+                                <div class="mode-label" id="info-mode-label">Mode: Normal</div>
+                                <div class="used-games-list" id="used-champs-list">
+                                    <div class="no-data" style="color:#666; font-style:italic;">No previous games.</div>
+                                </div>
+                            </div>
+
+                            <div class="series-links-container">
+                                <span class="series-links-label">Series links:</span>
+                                <div id="series-links" class="series-links">
+                                    <!-- Links generated by JS: Bo1/Bo3/Bo5 -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="search-bar-container">
+                            <div class="role-filters">
+                                <button class="filter-btn active" data-role="all"><img
+                                        src="https://i.hizliresim.com/3h0xhq5.png" alt="All"></button>
+                                <button class="filter-btn" data-role="top"><img
+                                        src="https://draftlol.dawe.gg/static/media/position-top.b8751069432fe163496f.svg"
+                                        alt="Top"></button>
+                                <button class="filter-btn" data-role="jungle"><img
+                                        src="https://draftlol.dawe.gg/static/media/position-jungle.5e69f9ec34fbe57e75c8.svg"
+                                        alt="Jungle"></button>
+                                <button class="filter-btn" data-role="mid"><img
+                                        src="https://draftlol.dawe.gg/static/media/position-middle.34427fb8c407c39d57e2.svg"
+                                        alt="Mid"></button>
+                                <button class="filter-btn" data-role="bot"><img
+                                        src="https://draftlol.dawe.gg/static/media/position-bottom.21509e3883c16b6fc3d0.svg"
+                                        alt="Bot"></button>
+                                <button class="filter-btn" data-role="support"><img
+                                        src="https://draftlol.dawe.gg/static/media/position-utility.c5a52aaac8d51b65adf7.svg"
+                                        alt="Support"></button>
+                            </div>
+                            <input type="text" id="champion-search" placeholder="Search Champion...">
+                        </div>
+                        <div class="champion-grid" id="champion-grid">
+                            <!-- Champions generated by JS -->
+                        </div>
+                        <div class="action-buttons">
+                            <button id="lock-in-btn" class="hextech-btn" disabled>LOCK IN</button>
+                        </div>
+                    </section>
+
+                    <!-- Red Team Picks -->
+                    <section class="team-panel red-team">
+                        <div class="team-label red-label">RED</div>
+                        <div class="slots-container" id="red-picks">
+                            <!-- Pick Slots generated by JS -->
+                        </div>
+                    </section>
+                </div>
+            </section>
+            <!-- VIEW: PAST MATCHES -->
+            <section id="view-past-matches" class="content-view">
+                <div class="matches-container" style="padding: 30px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                        <h1>Geçmiş Maçlar</h1>
+                        <div class="match-actions" style="display:flex; gap:10px;">
+                            <button id="export-data-btn" class="hextech-btn" style="font-size:0.8rem;">İNDİR
+                                (JSON)</button>
+                            <input type="file" id="import-data-file" hidden accept=".json">
+                            <button id="import-data-btn" class="outline-btn" style="font-size:0.8rem;">YÜKLE</button>
+                        </div>
+                    </div>
+                    <div id="match-list" class="match-list">
+                        <!-- Populated by JS -->
+                        <div class="no-data" style="color:#666; font-style:italic;">Henüz kayıtlı maç yok.</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW: PLAYER STATS -->
+            <section id="view-player-stats" class="content-view">
+                <div class="profile-container" style="padding: 30px;">
+                    <h1>Oyuncu Profili</h1>
+                    <div class="profile-search" style="margin-bottom:30px; display:flex; gap:10px;">
+                        <input type="text" id="player-search-input" class="hex-input" placeholder="Oyuncu Adı Ara..."
+                            style="padding:10px;">
+                        <button id="player-search-btn" class="hextech-btn">ARA</button>
+                    </div>
+
+                    <div id="player-profile-content" class="hidden" style="animation: fadeIn 0.3s ease;">
+
+                        <!-- New Profile Header -->
+                        <div id="pp-header"
+                            style="background:rgba(20,20,30,0.8); border:1px solid #444; border-radius:10px; padding:30px; display:flex; align-items:center; gap:30px; margin-bottom:30px; box-shadow:0 0 20px rgba(0,0,0,0.5);">
+                            <!-- Populated by JS -->
+                        </div>
+
+                        <div
+                            style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:20px; margin-bottom:30px;">
+                            <!-- Stats Cards -->
+                            <div id="pp-stats-cards"
+                                style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:15px; grid-column: 1 / -1;">
+                            </div>
+
+                            <!-- Champ Pool -->
+                            <div
+                                style="background:rgba(20,20,30,0.6); border:1px solid #333; border-radius:10px; padding:20px;">
+                                <h4
+                                    style="color:#c8aa6e; border-bottom:1px solid #444; padding-bottom:10px; margin-bottom:15px;">
+                                    <i class="fas fa-star"></i> Şampiyon Havuzu</h4>
+                                <div id="profile-top-champs" style="display:flex; flex-direction:column; gap:10px;">
+                                </div>
+                            </div>
+
+                            <!-- Role Stats -->
+                            <div
+                                style="background:rgba(20,20,30,0.6); border:1px solid #333; border-radius:10px; padding:20px;">
+                                <h4
+                                    style="color:#c8aa6e; border-bottom:1px solid #444; padding-bottom:10px; margin-bottom:15px;">
+                                    <i class="fas fa-chart-bar"></i> Rol İstatistikleri</h4>
+                                <div id="profile-role-stats" style="display:flex; flex-direction:column; gap:15px;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <h3 style="color:#aaa; border-bottom:1px solid #444; padding-bottom:5px; margin-bottom:15px;">
+                            Son Maçlar</h3>
+                        <div id="profile-match-history" class="match-list"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW: CHAMPION STATS -->
+            <section id="view-champion-stats" class="content-view">
+                <div class="lb-container" style="padding: 30px;">
+                    <div style="margin-bottom:30px;">
+                        <h1>Şampiyon İstatistikleri</h1>
+                        <p style="color:#888;">Tüm şampiyonların oynanma oranları ve başarı istatistikleri.</p>
+                    </div>
+
+                    <!-- Header Stats Cards -->
+                    <div id="champ-stats-header"
+                        style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:15px; margin-bottom:30px;">
+                        <!-- Populated by JS -->
+                    </div>
+
+                    <div style="overflow-x:auto;">
+                        <table class="hextech-table" style="width:100%; border-collapse:collapse; text-align:left;">
+                            <thead>
+                                <tr style="border-bottom:1px solid #444; color:#888; font-size:0.8rem;">
+                                    <th style="padding:15px;">ŞAMPİYON</th>
+                                    <th style="padding:15px;">OYNANMA</th> <!-- Matches -->
+                                    <th style="padding:15px;">G. %</th> <!-- Pick Rate -->
+                                    <th style="padding:15px;">GALİBİYET</th> <!-- W/L -->
+                                    <th style="padding:15px;">KAZANMA %</th> <!-- WR -->
+                                    <th style="padding:15px;">ORT. KDA</th>
+                                    <th style="padding:15px;">BAN %</th> <!-- Ban Rate -->
+                                </tr>
+                            </thead>
+                            <tbody id="champ-stats-body">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW: LEADERBOARD -->
+            <section id="view-leaderboard" class="content-view">
+                <div class="leaderboard-container" style="padding: 30px;">
+                    <h1>Liderlik Tablosu</h1>
+                    <div class="lb-controls" style="margin-bottom:20px; display:flex; gap:10px;">
+                        <button class="lb-filter active hextech-btn" data-sort="wr"
+                            style="font-size:0.8rem; padding:5px 15px;">WIN RATE</button>
+                        <button class="lb-filter outline-btn" data-sort="kda"
+                            style="font-size:0.8rem; padding:5px 15px;">KDA</button>
+                    </div>
+                    <div style="overflow-x:auto;">
+                        <table class="hextech-table" style="width:100%; border-collapse:collapse; text-align:left;">
+                            <thead>
+                                <tr style="border-bottom:1px solid #444; color:#888;">
+                                    <th style="padding:15px;">#</th>
+                                    <th style="padding:15px;">OYUNCU</th>
+                                    <th style="padding:15px;">ROL</th>
+                                    <th style="padding:15px;">MAÇ</th>
+                                    <th style="padding:15px;">KAZANMA %</th> <!-- WR -->
+                                    <th style="padding:15px;">KDA</th>
+                                    <th style="padding:15px;">K/D/A</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leaderboard-body">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
