@@ -144,6 +144,31 @@ const Utils = {
     },
 
     /**
+     * Get gradient color based on value
+     * value: 0-100 (for percentage)
+     * minHue: Hue for 0% (default 0 - Red)
+     * maxHue: Hue for 100% (default 120 - Green)
+     */
+    /**
+     * Get gradient color value (Raw color string)
+     */
+    getGradientColorValue(value, minHue = 0, maxHue = 120) {
+        // Clamp value between 0 and 100
+        const percent = Math.max(0, Math.min(100, value));
+        // Calculate hue based on percentage
+        const hue = (percent / 100) * (maxHue - minHue) + minHue;
+        // Return HSL string
+        return `hsl(${hue}, 90%, 50%)`;
+    },
+
+    /**
+     * Get gradient color style (CSS rule)
+     */
+    getGradientColor(value, minHue = 0, maxHue = 120) {
+        return `color: ${this.getGradientColorValue(value, minHue, maxHue)};`;
+    },
+
+    /**
      * Format KDA
      */
     formatKDA(kills, deaths, assists) {
@@ -153,6 +178,34 @@ const Utils = {
             display: `${kills}/${deaths}/${assists}`,
             color: parseFloat(kda) >= 3 ? 'var(--cyan)' : parseFloat(kda) >= 2 ? 'var(--gold)' : 'var(--text-secondary)'
         };
+    },
+
+    /**
+     * Get win rate color
+     */
+    /**
+     * Get win rate color
+     * Dynamic gradient: 0% (Red) -> 50% (Yellow) -> 100% (Green)
+     */
+    getWinRateColor(wr) {
+        return this.getGradientColor(wr);
+    },
+
+    /**
+     * Get KDA color
+     * Dynamic gradient for KDA
+     * 0 -> Red
+     * 3 -> Yellow
+     * 6+ -> Green
+     */
+    getKDAColor(kdaVal) {
+        const kda = parseFloat(kdaVal);
+        // Normalize KDA to 0-100 scale for the gradient
+        // Let's say 0 KDA = 0%, 3 KDA = 50%, 6 KDA = 100%
+        // Formula: (KDA / 6) * 100
+        const percentage = (kda / 6) * 100;
+
+        return this.getGradientColor(percentage);
     },
 
     /**

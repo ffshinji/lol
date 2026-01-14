@@ -163,6 +163,7 @@ const Stats = {
         return Object.values(champData)
             .map(c => ({
                 ...c,
+                losses: c.matches - c.wins,
                 winRate: c.matches > 0 ? Math.round((c.wins / c.matches) * 100) : 0,
                 kda: c.deaths > 0 ? ((c.kills + c.assists) / c.deaths).toFixed(2) : (c.kills + c.assists).toFixed(2),
                 pickRate: totalMatches > 0 ? ((c.matches / totalMatches) * 10).toFixed(1) : 0,

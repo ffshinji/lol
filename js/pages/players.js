@@ -94,20 +94,20 @@ const PlayersPage = {
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); font-size: var(--text-xs);">
                         <div>
-                            <span class="text-muted">Maç:</span> 
+                            <span style="color: #ff8c00;">Maç:</span> 
                             <span style="font-weight: var(--font-medium);">${stats.matches}</span>
                         </div>
                         <div>
-                            <span class="text-muted">WR:</span> 
-                            <span class="${winRate >= 50 ? 'text-win' : 'text-lose'}" style="font-weight: var(--font-bold);">${winRate}%</span>
+                            <span style="color: #ff8c00;">WR:</span> 
+                            <span style="${Utils.getWinRateColor(winRate)}; font-weight: var(--font-bold);">${winRate}%</span>
                         </div>
                         <div>
-                            <span class="text-muted">W/L:</span> 
+                            <span style="color: #ff8c00;">W/L:</span> 
                             <span class="text-win">${stats.wins}</span>/<span class="text-lose">${stats.losses}</span>
                         </div>
                         <div>
-                            <span class="text-muted">KDA:</span> 
-                            <span class="text-orange" style="font-weight: var(--font-medium);">${kda}</span>
+                            <span style="color: #ff8c00;">KDA:</span> 
+                            <span style="${Utils.getKDAColor(kda)}; font-weight: var(--font-medium);">${kda}</span>
                         </div>
                     </div>
                 </div>
@@ -274,7 +274,7 @@ const PlayersPage = {
                                     width: 70px; 
                                     height: 70px; 
                                     border-radius: 50%; 
-                                    background: conic-gradient(${winRate >= 50 ? '#0ac8b9' : '#e25050'} ${winRate}%, #2a2e35 ${winRate}%); 
+                                    background: conic-gradient(${Utils.getGradientColorValue(winRate)} ${winRate}%, #2a2e35 ${winRate}%); 
                                     display: flex; 
                                     align-items: center; 
                                     justify-content: center; 
@@ -307,12 +307,12 @@ const PlayersPage = {
                         </div>
                          <div>
                             <div style="font-size: var(--text-xs); color: #ff8c00; font-weight: bold; text-transform: uppercase;">KDA</div>
-                            <div style="font-size: var(--text-xl); font-weight: bold;">${kda}</div>
+                            <div style="font-size: var(--text-xl); font-weight: bold; ${Utils.getKDAColor(kda)}">${kda}</div>
                         </div>
                          <div>
                             <div style="font-size: var(--text-xs); color: #ff8c00; font-weight: bold; text-transform: uppercase;">ORTALAMA K/D/A</div>
                             <div style="font-size: var(--text-xl); font-weight: bold;">
-                                <span style="color: #0ac8b9;">${avgK}</span><span style="color: var(--text-secondary); opacity: 0.5;">/</span><span style="color: #e25050;">${avgD}</span><span style="color: var(--text-secondary); opacity: 0.5;">/</span><span style="color: #ffb84d;">${avgA}</span>
+                                <span style="color: #22c55e;">${avgK}</span><span style="color: var(--text-secondary); opacity: 0.5;">/</span><span style="color: #e25050;">${avgD}</span><span style="color: var(--text-secondary); opacity: 0.5;">/</span><span style="color: #ffb84d;">${avgA}</span>
                             </div>
                         </div>
                     </div>
@@ -408,7 +408,7 @@ const PlayersPage = {
                          <div class="flex flex-col">
                             <span style="font-weight: bold; font-size: 16px; letter-spacing: 0.5px;">${pData.kills} / <span style="color: var(--lose)">${pData.deaths}</span> / ${pData.assists}</span>
                             <span class="text-muted" style="font-size: 11px;">
-                                <span style="font-weight:bold; color: ${isWin ? 'var(--cyan)' : 'var(--text-primary)'}">${kdaVal} KDA</span> 
+                                <span style="font-weight:bold; ${Utils.getKDAColor(kdaVal)}">${kdaVal} KDA</span> 
                                 <span style="margin: 0 4px">•</span> ${cs} CS
                             </span>
                          </div>
@@ -457,7 +457,7 @@ const PlayersPage = {
                     <div style="flex: 1">
                         <div class="flex justify-between mb-1">
                              <div style="font-weight: var(--font-semibold); font-size: var(--text-sm);">${champId}</div>
-                             <div class="text-muted" style="font-size: var(--text-xs);"><span style="${wr >= 50 ? 'color: var(--win)' : 'color: var(--lose)'}; font-weight: bold;">${wr}%</span> (${stats.matches} Played)</div>
+                             <div class="text-muted" style="font-size: var(--text-xs);"><span style="${Utils.getWinRateColor(wr)}; font-weight: bold;">${wr}%</span> (${stats.matches} Played)</div>
                         </div>
                         <div style="width: 100%; height: 6px; background: var(--bg-secondary); border-radius: 4px; overflow: hidden;">
                              <div style="width: ${barWidth}%; height: 100%; background: ${Utils.getAvatarColor(champId)};"></div>

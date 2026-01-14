@@ -51,6 +51,7 @@
                         <span class="nav-emoji">⭐</span>
                         <span>Şampiyonlar</span>
                     </a>
+                    <a href="seasons.html" class="nav-link"><span class="nav-emoji">📅</span><span>Sezonlar</span></a>
                 </div>
 
                 <div class="nav-section">
@@ -241,25 +242,31 @@
                 const valueEl = card.querySelector('.stat-card-value');
                 if (valueEl) {
                     valueEl.textContent = valueText;
-                    valueEl.className = `stat-card-value ${colorClass}`;
+                    if (colorClass.includes(':')) {
+                        valueEl.style = colorClass;
+                        valueEl.className = 'stat-card-value';
+                    } else {
+                        valueEl.className = `stat-card-value ${colorClass}`;
+                        valueEl.style = '';
+                    }
                 }
             };
 
             // Top WR
             const topWR = stats.topWinRatePlayer;
-            updateCard('top-wr-card', topWR, topWR ? topWR.winRate + '%' : '0%', 'text-win');
+            updateCard('top-wr-card', topWR, topWR ? topWR.winRate + '%' : '0%', Utils.getWinRateColor(topWR?.winRate));
 
             // Top KDA
             const topKDA = stats.topKDAPlayer;
-            updateCard('top-kda-card', topKDA, topKDA ? parseFloat(topKDA.kda).toFixed(1) : '0.0', 'text-cyan');
+            updateCard('top-kda-card', topKDA, topKDA ? parseFloat(topKDA.kda).toFixed(1) : '0.0', Utils.getKDAColor(topKDA?.kda));
 
             // Worst WR
             const worstWR = stats.worstWinRatePlayer;
-            updateCard('worst-wr-card', worstWR, worstWR ? worstWR.winRate + '%' : '0%', 'text-lose');
+            updateCard('worst-wr-card', worstWR, worstWR ? worstWR.winRate + '%' : '0%', Utils.getWinRateColor(worstWR?.winRate));
 
             // Worst KDA
             const worstKDA = stats.worstKDAPlayer;
-            updateCard('worst-kda-card', worstKDA, worstKDA ? parseFloat(worstKDA.kda).toFixed(1) : '0.0', 'text-lose');
+            updateCard('worst-kda-card', worstKDA, worstKDA ? parseFloat(worstKDA.kda).toFixed(1) : '0.0', Utils.getKDAColor(worstKDA?.kda));
         }
 
         function loadMostPlayedChampion() {
@@ -296,7 +303,7 @@
                     </td>
                     <td>${c.matches}</td>
                     <td>${c.kda}</td>
-                    <td class="${c.winRate >= 50 ? 'text-win' : 'text-lose'}">${c.winRate}%</td>
+                    <td style="${Utils.getWinRateColor(c.winRate)}; font-weight:bold">${c.winRate}%</td>
                 </tr>
             `}).join('');
         }
@@ -325,7 +332,7 @@
                 const champImg = firstBlue ? Utils.getChampionIcon(firstBlue.championId || firstBlue.champion) : '';
 
                 return `
-                    <div class="match-row ${resultClass}">
+                    <div class="match-row ${resultClass}" onclick="window.location.href='matches.html?matchId=${m.id}'" style="cursor: pointer;">
                         <div class="flex items-center gap-3">
                             <img src="${champImg}" style="width:48px;height:48px;border-radius:8px;" onerror="this.src='${Utils.getProfileIcon('match')}'">
                             <div>
@@ -334,12 +341,29 @@
                                     ${m.blueTeamName || 'Mavi'} vs ${m.redTeamName || 'Kırmızı'}
                                 </div>
                             </div>
-                            <div style="margin-left:auto; display:flex; gap:4px;">
-                                ${(m.blueTeam || []).slice(0, 5).map(p => `
-                                    <img src="${Utils.getChampionIcon(p.championId || p.champion)}" 
-                                         style="width:24px;height:24px;border-radius:4px;" 
-                                         onerror="this.src='${Utils.getProfileIcon(p.name)}'">
-                                `).join('')}
+                            <div style="margin-left:auto; display:flex; flex-direction: column; gap:4px; align-items: flex-end;">
+                                <!-- Blue Team -->
+                                <div style="display:flex; gap:2px;">
+                                    ${(m.blueTeam || []).slice(0, 5).map(p => `
+                                        <div style="width:24px;height:24px;background:#333;border-radius:4px;overflow:hidden;">
+                                            <img src="${Utils.getChampionIcon(p.championId || p.champion)}" 
+                                                style="width:100%;height:100%;object-fit:cover;" 
+                                                title="${p.name || 'Unknown'}"
+                                                onerror="this.src='${Utils.getProfileIcon(p.name)}'">
+                                        </div>
+                                    `).join('')}
+                                </div>
+                                <!-- Red Team -->
+                                <div style="display:flex; gap:2px;">
+                                    ${(m.redTeam || []).slice(0, 5).map(p => `
+                                        <div style="width:24px;height:24px;background:#333;border-radius:4px;overflow:hidden;">
+                                            <img src="${Utils.getChampionIcon(p.championId || p.champion)}" 
+                                                style="width:100%;height:100%;object-fit:cover;" 
+                                                title="${p.name || 'Unknown'}"
+                                                onerror="this.src='${Utils.getProfileIcon(p.name)}'">
+                                        </div>
+                                    `).join('')}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -368,7 +392,7 @@
                         <div class="player-rank ${rankClass}">#${i + 1}</div>
                         ${Utils.renderAvatarHtml(player, 'avatar-sm')}
                         <div style="flex:1;font-weight:var(--font-medium)">${Utils.escapeHtml(player.nickname || player.name)}</div>
-                        <div class="${s.winRate >= 50 ? 'text-win' : 'text-lose'}" style="font-weight:bold">${s.winRate}%</div>
+                        <div style="${Utils.getWinRateColor(s.winRate)}; font-weight:bold">${s.winRate}%</div>
                         <div class="text-muted" style="margin-left:var(--space-2)">${s.kda} KDA</div>
                     </div>
                 `;

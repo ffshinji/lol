@@ -445,10 +445,25 @@ class Utils {
                 audio.loop = true;
                 audio.volume = 0.3;
                 window._draftAmbient = audio;
+            } else if (type === 'son10') {
+                if (window._countdownAudio) {
+                    window._countdownAudio.pause();
+                    window._countdownAudio.currentTime = 0;
+                }
+                audio.volume = 0.3;
+                window._countdownAudio = audio;
             } else {
                 audio.volume = 0.3;
             }
             audio.play().catch(e => console.log("Sound play blocked:", e));
+        }
+    }
+
+    static stopCountdown() {
+        if (window._countdownAudio) {
+            window._countdownAudio.pause();
+            window._countdownAudio.currentTime = 0;
+            window._countdownAudio = null;
         }
     }
 
@@ -937,6 +952,9 @@ class DraftSimulator {
         this.updateStatusDisplay(turn);
         this.highlightActiveSlot(turn);
 
+        // Stop any previous countdown sound
+        Utils.stopCountdown();
+
         // Play turn start sound
         if (turn.type === 'ban') {
             Utils.playSFX('banilk5');
@@ -1045,9 +1063,13 @@ class DraftSimulator {
         }
     }
 
-    lockInChampion(isFromSync = false) {
+    lockInChampion(isSync = false) {
         if (!this.selectedChampion) return;
-        if (!isFromSync && !this.canAct()) return;
+
+        // Stop countdown sound immediately
+        Utils.stopCountdown();
+
+        if (!isSync && !this.canAct()) return;
 
         const turn = DRAFT_ORDER[this.stepIndex];
         if (!turn) return; // Draft is complete

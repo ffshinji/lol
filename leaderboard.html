@@ -33,6 +33,7 @@
                             Tablosu</span></a>
                     <a href="champions.html" class="nav-link"><span
                             class="nav-emoji">⭐</span><span>Şampiyonlar</span></a>
+                    <a href="seasons.html" class="nav-link"><span class="nav-emoji">📅</span><span>Sezonlar</span></a>
                 </div>
                 <div class="nav-section">
                     <div class="nav-section-title">Sistem</div>
@@ -48,26 +49,27 @@
                 <p class="page-description">Oyuncuların performans sıralaması.</p>
             </div>
 
-            <div class="flex gap-4 mb-6">
-                <button class="btn btn-primary" data-sort="winRate" onclick="loadLeaderboard('winRate', this)">Win
-                    Rate</button>
-                <button class="btn btn-secondary" data-sort="kda" onclick="loadLeaderboard('kda', this)">KDA</button>
-                <button class="btn btn-secondary" data-sort="matches" onclick="loadLeaderboard('matches', this)">Maç
-                    Sayısı</button>
-            </div>
 
             <div class="card">
                 <div class="table-container">
                     <table class="table">
                         <thead>
                             <tr>
-                                <th style="width:60px; color: #ff8c00;" class="text-center">Sıra</th>
-                                <th style="width: 25%; color: #ff8c00;">Oyuncu</th>
-                                <th style="width:140px; text-align: left; padding-left: 20px; color: #ff8c00;">Rol</th>
-                                <th class="text-center" style="color: #ff8c00;">Maç</th>
-                                <th class="text-center" style="color: #ff8c00;">W/L</th>
-                                <th class="text-center" style="color: #ff8c00;">Win Rate</th>
-                                <th class="text-center" style="color: #ff8c00;">KDA</th>
+                                <th style="width:60px; color: #ff8c00; cursor: pointer;" class="text-center sortable"
+                                    onclick="loadLeaderboard('rank')">Sıra <span id="sort-rank"></span></th>
+                                <th style="width: 25%; color: #ff8c00; cursor: pointer;" class="sortable"
+                                    onclick="loadLeaderboard('player')">Oyuncu <span id="sort-player"></span></th>
+                                <th style="width:140px; text-align: left; padding-left: 20px; color: #ff8c00; cursor: pointer;"
+                                    class="sortable" onclick="loadLeaderboard('role')">Rol <span id="sort-role"></span>
+                                </th>
+                                <th class="text-center sortable" style="color: #ff8c00; cursor: pointer;"
+                                    onclick="loadLeaderboard('matches')">Maç <span id="sort-matches"></span></th>
+                                <th class="text-center sortable" style="color: #ff8c00; cursor: pointer;"
+                                    onclick="loadLeaderboard('wl')">W/L <span id="sort-wl"></span></th>
+                                <th class="text-center sortable" style="color: #ff8c00; cursor: pointer;"
+                                    onclick="loadLeaderboard('winRate')">Win Rate <span id="sort-winRate"></span></th>
+                                <th class="text-center sortable" style="color: #ff8c00; cursor: pointer;"
+                                    onclick="loadLeaderboard('kda')">KDA <span id="sort-kda"></span></th>
                             </tr>
                         </thead>
                         <tbody id="leaderboard-tbody">
@@ -86,34 +88,89 @@
     <script src="js/stats.js"></script>
     <script src="js/app.js"></script>
     <script>
+        let currentSort = { field: 'winRate', direction: 'desc' };
+
         window.addEventListener('appReady', () => loadLeaderboard('winRate'));
         if (typeof App !== 'undefined' && App.isReady) loadLeaderboard('winRate');
 
-        function loadLeaderboard(sortBy, btn) {
-            document.querySelectorAll('[data-sort]').forEach(b => {
-                b.classList.remove('btn-primary');
-                b.classList.add('btn-secondary');
-            });
-            if (btn) {
-                btn.classList.add('btn-primary');
-                btn.classList.remove('btn-secondary');
-            } else {
-                document.querySelector('[data-sort="' + sortBy + '"]')?.classList.add('btn-primary');
-                document.querySelector('[data-sort="' + sortBy + '"]')?.classList.remove('btn-secondary');
+        function loadLeaderboard(sortField = null) {
+            // Update sort state
+            if (sortField) {
+                if (currentSort.field === sortField) {
+                    currentSort.direction = currentSort.direction === 'desc' ? 'asc' : 'desc';
+                } else {
+                    currentSort.field = sortField;
+                    currentSort.direction = sortField === 'rank' || sortField === 'player' || sortField === 'role' ? 'asc' : 'desc';
+                }
             }
 
+            // Update Sort Icons
+            const fields = ['rank', 'player', 'role', 'matches', 'wl', 'winRate', 'kda'];
+            fields.forEach(f => {
+                const el = document.getElementById(`sort-${f}`);
+                if (el) el.textContent = '';
+                if (f === currentSort.field) {
+                    if (el) el.textContent = currentSort.direction === 'desc' ? '▼' : '▲';
+                }
+            });
+
             const tbody = document.getElementById('leaderboard-tbody');
-            const leaderboard = Stats.getLeaderboard(sortBy, 50, 1);
+            // Fetch ALL stats, unsorted initially
+            let leaderboard = Stats.getAllPlayerStats('winRate', 1);
 
             if (leaderboard.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Henüz oyuncu yok.</td></tr>';
                 return;
             }
 
+            // Apply Sort
+            leaderboard.sort((a, b) => {
+                let valA, valB;
+                switch (currentSort.field) {
+                    case 'rank':
+                        // Fallback to WinRatio sort order for "natural" rank if we aren't storing persistent rank
+                        // Actually, "Rank" in the table is just the index 1..N.
+                        // If user clicks "Sıra", they probably want to revert to the "Default" sort (Win Rate).
+                        // Let's treat 'rank' as 'winRate' for underlying value, but with explicit reset intent
+                        valA = a.winRate; valB = b.winRate;
+                        // Tie breaker mostly handled by default logic, but let's be safe
+                        if (valA === valB) return b.totalMatches - a.totalMatches;
+                        return b.winRate - a.winRate; // Always descending WinRate = Ascending Rank #1, #2...
+                    case 'player':
+                        valA = (a.player.nickname || a.player.name).toLowerCase();
+                        valB = (b.player.nickname || b.player.name).toLowerCase();
+                        return currentSort.direction === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                    case 'role':
+                        valA = Stats.getMainRole(a.player); valB = Stats.getMainRole(b.player);
+                        return currentSort.direction === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                    case 'matches':
+                        valA = a.totalMatches; valB = b.totalMatches; break;
+                    case 'wl':
+                        valA = a.wins - a.losses; valB = b.wins - b.losses; break;
+                    case 'kda':
+                        valA = parseFloat(a.kda); valB = parseFloat(b.kda); break;
+                    case 'winRate':
+                    default:
+                        valA = a.winRate; valB = b.winRate; break;
+                }
+                // Specialized comparisons handled above for strings; numeric down here
+                if (typeof valA === 'number') {
+                    return currentSort.direction === 'desc' ? valB - valA : valA - valB;
+                }
+                return 0; // String cases returned earlier
+            });
+
+            // Special Case: If sorting by Rank, we want to force standard WinRate Descending order as that Defines rank
+            if (currentSort.field === 'rank') {
+                leaderboard = Stats.getAllPlayerStats('winRate', 1); // Reset to standard
+                if (currentSort.direction === 'desc') {
+                    leaderboard.reverse(); // Worst players first if someone wants that?
+                }
+            }
+
+
             tbody.innerHTML = leaderboard.map((s, i) => {
                 const player = s.player;
-                const initials = Utils.getInitials(player.name);
-                const avatarColor = Utils.getAvatarColor(player.name);
                 const role = Stats.getMainRole(player);
                 const roleIcon = Utils.getRoleIcon(role);
                 const roleName = Utils.getRoleName(role);
@@ -134,14 +191,14 @@
                         </td>
                         <td style="text-align: left; padding-left: 20px;">
                              <div class="flex items-center gap-2" title="${roleName}">
-                                 <img src="${roleIcon}" style="width: 20px; height: 20px; opacity: 1;">
-                                 <span style="font-size: var(--text-xs); color: var(--text-muted); font-weight: 500;">${roleName}</span>
+                                  <img src="${roleIcon}" style="width: 20px; height: 20px; opacity: 1;">
+                                  <span style="font-size: var(--text-xs); color: var(--text-muted); font-weight: 500;">${roleName}</span>
                              </div>
                         </td>
                         <td class="text-center">${s.totalMatches}</td>
                         <td class="text-center"><span class="text-win">${s.wins}</span>/<span class="text-lose">${s.losses}</span></td>
-                        <td class="text-center ${s.winRate >= 50 ? 'text-win' : 'text-lose'}" style="font-weight:bold">${s.winRate}%</td>
-                        <td class="text-center text-orange">${s.kda}</td>
+                        <td class="text-center" style="${Utils.getWinRateColor(s.winRate)}; font-weight:bold">${s.winRate}%</td>
+                        <td class="text-center" style="${Utils.getKDAColor(s.kda)}; font-weight:bold">${s.kda}</td>
                     </tr>
                 `;
             }).join('');

@@ -33,6 +33,7 @@
                             Tablosu</span></a>
                     <a href="champions.html" class="nav-link active"><span
                             class="nav-emoji">⭐</span><span>Şampiyonlar</span></a>
+                    <a href="seasons.html" class="nav-link"><span class="nav-emoji">📅</span><span>Sezonlar</span></a>
                 </div>
                 <div class="nav-section">
                     <div class="nav-section-title">Sistem</div>
@@ -56,9 +57,16 @@
                         <thead>
                             <tr>
                                 <th style="color: #ff8c00;">Şampiyon</th>
-                                <th class="text-center" style="color: #ff8c00;">Oynanan</th>
-                                <th class="text-center" style="color: #ff8c00;">Win Rate</th>
-                                <th class="text-center" style="color: #ff8c00;">KDA</th>
+                                <th class="text-center sortable" onclick="loadChampions('matches')"
+                                    style="color: #ff8c00; cursor: pointer;">Oynanan <span id="sort-matches"></span>
+                                </th>
+                                <th class="text-center sortable" onclick="loadChampions('wl')"
+                                    style="color: #ff8c00; cursor: pointer;">W/L <span id="sort-wl"></span></th>
+                                <th class="text-center sortable" onclick="loadChampions('winRate')"
+                                    style="color: #ff8c00; cursor: pointer;">Win Rate <span id="sort-winRate"></span>
+                                </th>
+                                <th class="text-center sortable" onclick="loadChampions('kda')"
+                                    style="color: #ff8c00; cursor: pointer;">KDA <span id="sort-kda"></span></th>
                             </tr>
                         </thead>
                         <tbody id="champ-stats-tbody">
@@ -77,11 +85,51 @@
     <script src="js/stats.js"></script>
     <script src="js/app.js"></script>
     <script>
-        window.addEventListener('appReady', loadChampions);
+        let currentSort = { field: 'winRate', direction: 'desc' };
+
+        window.addEventListener('appReady', () => loadChampions());
         if (typeof App !== 'undefined' && App.isReady) loadChampions();
 
-        function loadChampions() {
-            const champions = Stats.calculateChampionStats().sort((a, b) => b.winRate - a.winRate);
+        function loadChampions(sortField = null) {
+            // Update sort state
+            if (sortField) {
+                if (currentSort.field === sortField) {
+                    currentSort.direction = currentSort.direction === 'desc' ? 'asc' : 'desc';
+                } else {
+                    currentSort.field = sortField;
+                    currentSort.direction = 'desc';
+                }
+            }
+
+            // Update Sort Icons
+            ['matches', 'wl', 'winRate', 'kda'].forEach(f => {
+                const el = document.getElementById(`sort-${f}`);
+                if (el) el.textContent = '';
+                if (f === currentSort.field) {
+                    if (el) el.textContent = currentSort.direction === 'desc' ? '▼' : '▲';
+                }
+            });
+
+            let champions = Stats.calculateChampionStats();
+
+            // Apply Sort
+            champions.sort((a, b) => {
+                let valA, valB;
+                switch (currentSort.field) {
+                    case 'matches':
+                        valA = a.matches; valB = b.matches; break;
+                    case 'wl':
+                        valA = a.wins - a.losses; valB = b.wins - b.losses; break; // Sort by Net Wins
+                    case 'kda':
+                        valA = parseFloat(a.kda); valB = parseFloat(b.kda); break;
+                    case 'winRate':
+                    default:
+                        valA = a.winRate; valB = b.winRate; break;
+                }
+
+                return currentSort.direction === 'desc' ? valB - valA : valA - valB;
+            });
+
             const headerContainer = document.getElementById('champ-stats-header');
             const tbody = document.getElementById('champ-stats-tbody');
 
@@ -101,7 +149,7 @@
             const worstKDA = [...validChamps].sort((a, b) => parseFloat(a.kda) - parseFloat(b.kda))[0];
 
             // Helpers for cards
-            const renderCard = (title, icon, champ, value, valueClass) => {
+            const renderCard = (title, icon, champ, value, customStyle) => {
                 if (!champ) return `
                     <div class="stat-card">
                         <div class="stat-card-header"><span class="icon">${icon}</span> ${title}</div>
@@ -115,7 +163,7 @@
                             <img src="${Utils.getChampionIcon(champ.id)}" style="width:48px;height:48px;border-radius:8px;" onerror="this.src='${Utils.getProfileIcon(champ.id)}'">
                             <div class="stat-card-info">
                                 <div class="stat-card-name">${champ.id}</div>
-                                <div class="stat-card-value ${valueClass}">${value}</div>
+                                <div class="stat-card-value" style="${customStyle}">${value}</div>
                             </div>
                         </div>
                     </div>
@@ -127,10 +175,10 @@
             headerContainer.innerHTML = `
                 <!-- Top Stats Row -->
                 <div class="grid grid-cols-4 gap-4">
-                    ${renderCard('EN YÜKSEK WR', '🏆', topWR, topWR?.winRate + '%', 'text-win')}
-                    ${renderCard('EN İYİ KDA', '⚔️', bestKDA, bestKDA?.kda, 'text-cyan')}
-                    ${renderCard('EN KÖTÜ WR', '💀', worstWR, worstWR?.winRate + '%', 'text-lose')}
-                    ${renderCard('EN KÖTÜ KDA', '💔', worstKDA, worstKDA?.kda, 'text-lose')}
+                    ${renderCard('EN YÜKSEK WR', '🏆', topWR, topWR?.winRate + '%', Utils.getWinRateColor(topWR?.winRate))}
+                    ${renderCard('EN İYİ KDA', '⚔️', bestKDA, bestKDA?.kda, Utils.getKDAColor(bestKDA?.kda))}
+                    ${renderCard('EN KÖTÜ WR', '💀', worstWR, worstWR?.winRate + '%', Utils.getWinRateColor(worstWR?.winRate))}
+                    ${renderCard('EN KÖTÜ KDA', '💔', worstKDA, worstKDA?.kda, Utils.getKDAColor(worstKDA?.kda))}
                 </div>
 
                 <!-- Secondary Row -->
@@ -142,7 +190,7 @@
                             <img src="${Utils.getChampionIcon(topPlayed.id)}" style="width:48px;height:48px;border-radius:8px;" onerror="this.src='${Utils.getProfileIcon(topPlayed.id)}'">
                             <div class="stat-card-info">
                                 <div class="stat-card-name">${topPlayed.id}</div>
-                                <div class="stat-card-value text-orange">${topPlayed.matches} maç</div>
+                                <div class="stat-card-value" style="color: #fff;">${topPlayed.matches} maç</div>
                             </div>
                         </div>
                     </div>
@@ -151,7 +199,7 @@
                     <div class="stat-card">
                         <div class="stat-card-header"><span class="icon">📊</span> TOPLAM OYNANAN ŞAMPİYON</div>
                          <div class="stat-card-content" style="justify-content: center; padding: 10px;">
-                            <div class="stat-card-value text-orange" style="font-size:2.5rem">${champions.length}</div>
+                            <div class="stat-card-value" style="font-size:2.5rem; color: #fff;">${champions.length}</div>
                         </div>
                     </div>
                 </div>
@@ -166,8 +214,9 @@
                         </div>
                     </td>
                     <td class="text-center">${c.matches}</td>
-                    <td class="text-center ${c.winRate >= 50 ? 'text-win' : 'text-lose'}" style="font-weight:bold">${c.winRate}%</td>
-                    <td class="text-center text-orange">${c.kda}</td>
+                    <td class="text-center"><span class="text-win">${c.wins}</span>/<span class="text-lose">${c.losses}</span></td>
+                    <td class="text-center" style="${Utils.getWinRateColor(c.winRate)}; font-weight:bold">${c.winRate}%</td>
+                    <td class="text-center" style="${Utils.getKDAColor(c.kda)}; font-weight:bold">${c.kda}</td>
                 </tr>
             `).join('');
         }
