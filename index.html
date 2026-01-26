@@ -39,6 +39,10 @@
                         <span class="nav-emoji">⚔️</span>
                         <span>Draft Yap</span>
                     </a>
+                    <a href="rivalry.html" class="nav-link">
+                        <span class="nav-emoji">⚖️</span>
+                        <span>Rekabet (H2H)</span>
+                    </a>
                 </div>
 
                 <div class="nav-section">
@@ -218,8 +222,23 @@
             loadLeaderboardPreview();
         }
 
+        function loadTotalMatches() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const seasonId = urlParams.get('season');
+            let matches = DB.getMatches();
+            if (seasonId) {
+                matches = matches.filter(m => m.season === seasonId);
+            } else {
+                matches = matches.filter(m => !m.season);
+            }
+            document.getElementById('total-matches').textContent = matches.length;
+        }
+
         function loadStatCards() {
-            const stats = Stats.getDashboardStats();
+            const urlParams = new URLSearchParams(window.location.search);
+            const seasonId = urlParams.get('season');
+
+            const stats = Stats.getDashboardStats(seasonId);
             if (!stats) return;
 
             const updateCard = (id, playerStats, valueText, colorClass) => {
@@ -228,7 +247,7 @@
 
                 const player = playerStats.player;
                 card.style.cursor = 'pointer';
-                card.onclick = () => window.location.href = `players.html?id=${player.id}`;
+                card.onclick = () => window.location.href = `players.html?id=${player.id}&season=${seasonId || ''}`;
 
                 // Update avatar using Utils
                 const avatarContainer = card.querySelector('.stat-card-avatar');
@@ -252,6 +271,8 @@
                 }
             };
 
+            // ... (Rest of updateCard logic is same, just using local stats const)
+
             // Top WR
             const topWR = stats.topWinRatePlayer;
             updateCard('top-wr-card', topWR, topWR ? topWR.winRate + '%' : '0%', Utils.getWinRateColor(topWR?.winRate));
@@ -270,10 +291,15 @@
         }
 
         function loadMostPlayedChampion() {
-            const champions = Stats.calculateChampionStats();
+            const urlParams = new URLSearchParams(window.location.search);
+            const seasonId = urlParams.get('season');
+
+            const champions = Stats.calculateChampionStats(seasonId);
             if (champions.length === 0) {
                 document.getElementById('most-played-img').src = 'https://ddragon.leagueoflegends.com/cdn/14.24.1/img/profileicon/29.png';
                 document.getElementById('most-played-name').textContent = '-';
+                // Clear table if no champions
+                document.getElementById('top-champs-tbody').innerHTML = '';
                 return;
             }
 
@@ -313,15 +339,26 @@
         }
 
         function loadRecentGames() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const seasonId = urlParams.get('season');
             const container = document.getElementById('recent-games');
-            const matches = DB.getMatches().slice(-3).reverse();
+
+            let matches = DB.getMatches();
+            if (seasonId) {
+                matches = matches.filter(m => m.season === seasonId);
+            } else {
+                matches = matches.filter(m => !m.season);
+            }
+            matches = matches.slice(-3).reverse();
 
             if (matches.length === 0) {
                 container.innerHTML = '<div class="empty-state">Henüz maç yok.</div>';
                 return;
             }
 
+            // ... (Rest of mapping logic is fine)
             container.innerHTML = matches.map(m => {
+                // ... existing map logic ...
                 const isBlueWin = m.winnerTeam === 'blue' || m.winner === 'blue';
                 const resultClass = isBlueWin ? 'victory' : 'defeat';
                 const resultText = isBlueWin ? 'Victory' : 'Defeat';
@@ -332,7 +369,7 @@
                 const champImg = firstBlue ? Utils.getChampionIcon(firstBlue.championId || firstBlue.champion) : '';
 
                 return `
-                    <div class="match-row ${resultClass}" onclick="window.location.href='matches.html?matchId=${m.id}'" style="cursor: pointer;">
+                    <div class="match-row ${resultClass}" onclick="window.location.href='matches.html?matchId=${m.id}&season=${seasonId || ''}'" style="cursor: pointer;">
                         <div class="flex items-center gap-3">
                             <img src="${champImg}" style="width:48px;height:48px;border-radius:8px;" onerror="this.src='${Utils.getProfileIcon('match')}'">
                             <div>
@@ -372,8 +409,11 @@
         }
 
         function loadLeaderboardPreview() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const seasonId = urlParams.get('season');
             const container = document.getElementById('leaderboard-preview');
-            const leaderboard = Stats.getLeaderboard('winRate', 5, 1);
+
+            const leaderboard = Stats.getLeaderboard('winRate', 5, 1, seasonId);
 
             if (leaderboard.length === 0) {
                 container.innerHTML = '<div class="empty-state">Henüz oyuncu yok.</div>';

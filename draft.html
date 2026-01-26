@@ -464,7 +464,10 @@
             localStorage.setItem('current_draft_config', JSON.stringify(settings));
 
             // Generate Links (pointing to draftyap.html with params)
-            const baseUrl = window.location.href.replace('draft.html', 'draftyap.html');
+            // Fix: Strip existing query params (like ?season=...) from baseUrl to prevent pollution
+            const originPath = window.location.origin + window.location.pathname.replace('draft.html', 'draftyap.html');
+            const baseUrl = originPath;
+
             const blueLink = `${baseUrl}?id=${uuid}&side=blue`;
             const redLink = `${baseUrl}?id=${uuid}&side=red`;
             const specLink = `${baseUrl}?id=${uuid}&side=spectate`;

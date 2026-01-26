@@ -25,7 +25,14 @@
                     <a href="players.html" class="nav-link"><span class="nav-emoji">👥</span><span>Oyuncular</span></a>
                     <a href="matches.html" class="nav-link"><span class="nav-emoji">📜</span><span>Geçmiş
                             Maçlar</span></a>
-                    <a href="draft.html" class="nav-link"><span class="nav-emoji">⚔️</span><span>Draft Yap</span></a>
+                    <a href="draft.html" class="nav-link">
+                        <span class="nav-emoji">⚔️</span>
+                        <span>Draft Yap</span>
+                    </a>
+                    <a href="rivalry.html" class="nav-link">
+                        <span class="nav-emoji">⚖️</span>
+                        <span>Rekabet (H2H)</span>
+                    </a>
                 </div>
                 <div class="nav-section">
                     <div class="nav-section-title">İstatistikler</div>
@@ -110,7 +117,15 @@
                 }
             });
 
-            let champions = Stats.calculateChampionStats();
+            const urlParams = new URLSearchParams(window.location.search);
+            const seasonId = urlParams.get('season');
+
+            if (seasonId) {
+                const titleEl = document.querySelector('.page-title');
+                if (titleEl) titleEl.textContent = `⭐ Şampiyon İstatistikleri (${seasonId})`;
+            }
+
+            let champions = Stats.calculateChampionStats(seasonId);
 
             // Apply Sort
             champions.sort((a, b) => {
@@ -162,7 +177,7 @@
                         <div class="stat-card-content">
                             <img src="${Utils.getChampionIcon(champ.id)}" style="width:48px;height:48px;border-radius:8px;" onerror="this.src='${Utils.getProfileIcon(champ.id)}'">
                             <div class="stat-card-info">
-                                <div class="stat-card-name">${champ.id}</div>
+                                <div class="stat-card-name">${Utils.getChampionDisplayName(champ.id)}</div>
                                 <div class="stat-card-value" style="${customStyle}">${value}</div>
                             </div>
                         </div>
@@ -189,7 +204,7 @@
                         <div class="stat-card-content">
                             <img src="${Utils.getChampionIcon(topPlayed.id)}" style="width:48px;height:48px;border-radius:8px;" onerror="this.src='${Utils.getProfileIcon(topPlayed.id)}'">
                             <div class="stat-card-info">
-                                <div class="stat-card-name">${topPlayed.id}</div>
+                                <div class="stat-card-name">${Utils.getChampionDisplayName(topPlayed.id)}</div>
                                 <div class="stat-card-value" style="color: #fff;">${topPlayed.matches} maç</div>
                             </div>
                         </div>
@@ -205,12 +220,13 @@
                 </div>
             `;
 
-            tbody.innerHTML = champions.map(c => `
+            tbody.innerHTML = champions.map((c, i) => `
                 <tr>
                     <td>
                         <div class="flex items-center gap-3">
+                            <div style="font-weight: bold; color: #666; width: 20px;">#${i + 1}</div>
                             <img src="${Utils.getChampionIcon(c.id)}" style="width:36px;height:36px;border-radius:6px;" onerror="this.src='${Utils.getProfileIcon(c.id)}'">
-                            <span style="font-weight:var(--font-semibold)">${c.id}</span>
+                            <div style="font-weight: 500;">${Utils.getChampionDisplayName(c.id)}</div>
                         </div>
                     </td>
                     <td class="text-center">${c.matches}</td>

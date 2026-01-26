@@ -1063,13 +1063,13 @@ class DraftSimulator {
         }
     }
 
-    lockInChampion(isSync = false) {
+    lockInChampion(isFromSync = false) {
         if (!this.selectedChampion) return;
 
         // Stop countdown sound immediately
         Utils.stopCountdown();
 
-        if (!isSync && !this.canAct()) return;
+        if (!isFromSync && !this.canAct()) return;
 
         const turn = DRAFT_ORDER[this.stepIndex];
         if (!turn) return; // Draft is complete
@@ -2595,7 +2595,7 @@ class StatsController {
 // --- DATA MANAGER (Stats & History) ---
 class DataManager {
     constructor() {
-        this.DB_KEY = 'lol_sim_db_v1';
+        this.DB_KEY = 'fflegends_hub_data';
         this.data = this.loadData();
         this.cleanupSample();
     }
@@ -2616,6 +2616,9 @@ class DataManager {
         // Reset players logic
         this.data.players = [];
         this.data.matches.forEach(m => {
+            // SKIP archived matches
+            if (m.season) return;
+
             const process = (team, won) => {
                 team.forEach(p => {
                     this.updatePlayerStats(
@@ -2719,10 +2722,15 @@ class DataManager {
     saveMatch(matchData) {
         // matchData: { mode, gameIndex, winner, blueTeam: [{name, role, championId, k,d,a}], redTeam: [...] }
         const matchId = 'm_' + Date.now();
+
+        // Ensure NO season data leaks into new matches
+        const sanitizedData = { ...matchData };
+        if (sanitizedData.season) delete sanitizedData.season;
+
         const newMatch = {
             id: matchId,
             date: new Date().toISOString(),
-            ...matchData
+            ...sanitizedData
         };
 
         this.data.matches.push(newMatch);

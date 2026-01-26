@@ -25,7 +25,14 @@
                     <a href="players.html" class="nav-link"><span class="nav-emoji">👥</span><span>Oyuncular</span></a>
                     <a href="matches.html" class="nav-link"><span class="nav-emoji">📜</span><span>Geçmiş
                             Maçlar</span></a>
-                    <a href="draft.html" class="nav-link"><span class="nav-emoji">⚔️</span><span>Draft Yap</span></a>
+                    <a href="draft.html" class="nav-link">
+                        <span class="nav-emoji">⚔️</span>
+                        <span>Draft Yap</span>
+                    </a>
+                    <a href="rivalry.html" class="nav-link">
+                        <span class="nav-emoji">⚖️</span>
+                        <span>Rekabet (H2H)</span>
+                    </a>
                 </div>
                 <div class="nav-section">
                     <div class="nav-section-title">İstatistikler</div>
@@ -46,22 +53,86 @@
         <!-- Main Content -->
         <main class="main-content">
             <div class="page-header">
-                <h1 class="page-title">📅 Sezonlar</h1>
-                <p class="page-description">Sezonluk istatistikler ve geçmişi.</p>
+                <h1 class="page-title">📅 Sezon Geçmişi</h1>
+                <p class="page-description">Geçmiş sezonları görüntüle ve yönet.</p>
             </div>
 
-            <div class="card">
-                <div style="text-align: center; padding: 50px;">
-                    <h2 class="text-orange" style="font-size: 2rem; margin-bottom: 20px;">Güncellenecektir</h2>
-                    <p class="text-muted">Bu sayfa yapım aşamasındadır. Daha sonra tekrar kontrol ediniz.</p>
-                </div>
+            <div class="grid grid-cols-3 gap-6" id="seasons-grid">
+                <!-- Seasons will be loaded here -->
             </div>
+
         </main>
     </div>
 
-    <script src="js/utils.js"></script>
-    <script src="js/db.js"></script>
-    <script src="js/app.js"></script>
+    <!-- Scripts -->
+    <script src="js/utils.js?v=2"></script>
+    <script src="js/db.js?v=2"></script>
+    <script src="js/stats.js?v=2"></script>
+    <script src="js/app.js?v=2"></script>
+    <script src="js/gemini.js?v=2"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // DB init is handled in db.js or app.js usually, but we ensure it here
+            DB.init();
+            renderSeasons();
+        });
+
+        function renderSeasons() {
+            const grid = document.getElementById('seasons-grid');
+            if (!grid) return;
+
+            const seasons = DB.data.archivedSeasons || {};
+            let html = '';
+
+            // Add Current Season Card
+            const currentMatchCount = DB.data.matches ? DB.data.matches.filter(m => !m.season).length : 0;
+            const currentPlayerCount = DB.data.players ? DB.data.players.length : 0;
+
+            html += `
+                <div class="card season-card current" style="border: 1px solid var(--primary); background: rgba(var(--primary-rgb), 0.1);">
+                    <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <h3 style="margin:0;">Mevcut Sezon</h3>
+                        <span class="badge badge-success" style="background:var(--green); color:#fff; padding:2px 8px; border-radius:4px; font-size:12px;">Aktif</span>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted">Şu an oynanan sezon.</p>
+                        <div class="stats-summary" style="margin: 15px 0;">
+                            <div><strong>${currentMatchCount}</strong> Maç</div>
+                            <div><strong>${currentPlayerCount}</strong> Oyuncu</div>
+                        </div>
+                        <button class="btn btn-secondary btn-sm btn-block" onclick="window.location.href='index.html'" style="width:100%">Görüntüle</button>
+                    </div>
+                </div>
+            `;
+
+            // Sort seasons
+            Object.values(seasons).reverse().forEach(s => {
+                html += `
+                    <div class="card season-card">
+                        <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                            <h3 style="margin:0;">${s.id}</h3>
+                            <span class="badge badge-secondary" style="background:#666; color:#fff; padding:2px 8px; border-radius:4px; font-size:12px;">Arşiv</span>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted" style="font-size:12px;">Arşivlenme: ${new Date(s.date).toLocaleDateString()}</p>
+                            <div class="stats-summary" style="margin: 15px 0;">
+                                <div><strong>${s.matches || 0}</strong> Maç</div>
+                                <div><strong>${s.playerCount || (s.leaderboard ? s.leaderboard.length : 0)}</strong> Oyuncu</div>
+                            </div>
+                            <button class="btn btn-outline btn-sm btn-block" onclick="viewSeason('${s.id}')" style="width:100%">İncele</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            grid.innerHTML = html;
+        }
+
+        function viewSeason(id) {
+            window.location.href = `leaderboard.html?season=${encodeURIComponent(id)}`;
+        }
+    </script>
 </body>
 
 </html>

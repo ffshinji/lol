@@ -6,6 +6,7 @@
 const PlayersPage = {
     currentView: 'list',
     currentPlayer: null,
+    showAllMatches: false,
 
     /**
      * Initialize
@@ -48,15 +49,49 @@ const PlayersPage = {
         const container = document.getElementById('players-grid');
         if (!container) return;
 
-        const players = DB.getPlayers();
+        const urlParams = new URLSearchParams(window.location.search);
+        const seasonId = urlParams.get('season');
+
+        let players = [];
+
+        if (seasonId) {
+            // Load from Archive
+            const seasonData = DB.getSeasonData(seasonId);
+            if (seasonData && seasonData.leaderboard) {
+                // Map leaderboard format back to player format slightly
+                // Leaderboard entry: { player: {...}, winRate: ..., totalMatches: ... }
+                // We need 'player' object with 'stats' attached from the entry.
+                players = seasonData.leaderboard.map(entry => {
+                    const p = { ...entry.player };
+                    // Overwrite stats with the snapshot stats
+                    p.stats = {
+                        matches: entry.totalMatches,
+                        wins: entry.wins,
+                        losses: entry.losses,
+                        kills: entry.kills,
+                        deaths: entry.deaths,
+                        assists: entry.assists,
+                        championStats: entry.championStats || {}, // Might need checking if snapshot saves this
+                        roleStats: entry.roleStats || {}
+                    };
+                    return p;
+                });
+
+                // Update Title
+                const titleEl = document.querySelector('.page-title');
+                if (titleEl) titleEl.textContent = `👥 Oyuncular (${seasonId})`;
+            }
+        } else {
+            // Load Live
+            players = DB.getPlayers();
+        }
 
         if (players.length === 0) {
             container.innerHTML = `
                 <div class="empty-state" style="grid-column: 1/-1">
                     <div style="font-size: 3rem; margin-bottom: var(--space-4);">👥</div>
-                    <h3>Henüz oyuncu yok</h3>
-                    <p class="text-muted">Ayarlar'dan oyuncu ekleyebilirsiniz.</p>
-                    <a href="settings.html" class="btn btn-primary mt-4">⚙️ Ayarlara Git</a>
+                    <h3>Henüz veri yok</h3>
+                    <p class="text-muted">${seasonId ? 'Bu sezonda oyuncu verisi bulunamadı.' : 'Ayarlardan oyuncu ekleyebilirsiniz.'}</p>
                 </div>
             `;
             return;
@@ -132,7 +167,33 @@ const PlayersPage = {
      * Show player detail
      */
     showPlayerDetail(playerId) {
-        const player = DB.getPlayerById(playerId);
+        const urlParams = new URLSearchParams(window.location.search);
+        const seasonId = urlParams.get('season');
+
+        let player = null;
+
+        if (seasonId) {
+            const seasonData = DB.getSeasonData(seasonId);
+            if (seasonData && seasonData.leaderboard) {
+                const entry = seasonData.leaderboard.find(e => e.player.id === playerId);
+                if (entry) {
+                    player = { ...entry.player };
+                    player.stats = {
+                        matches: entry.totalMatches,
+                        wins: entry.wins,
+                        losses: entry.losses,
+                        kills: entry.kills,
+                        deaths: entry.deaths,
+                        assists: entry.assists,
+                        championStats: entry.championStats || {},
+                        roleStats: entry.roleStats || {}
+                    };
+                }
+            }
+        } else {
+            player = DB.getPlayerById(playerId);
+        }
+
         if (!player) return;
 
         this.currentPlayer = player;
@@ -144,6 +205,7 @@ const PlayersPage = {
         if (listView) listView.classList.add('hidden');
         if (detailView) {
             detailView.classList.remove('hidden');
+            this.showAllMatches = false; // Reset on new player load
             this.renderPlayerDetail(player);
         }
     },
@@ -216,11 +278,27 @@ const PlayersPage = {
 
 
         // Get Recent Games
-        const allMatches = DB.getMatches().sort((a, b) => new Date(b.date) - new Date(a.date));
-        // Filter matches where this player participated
+        let allMatches = DB.getMatches().sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const seasonId = urlParams.get('season');
+
+        if (seasonId) {
+            allMatches = allMatches.filter(m => m.season === seasonId);
+        } else {
+            allMatches = allMatches.filter(m => !m.season);
+        }
+
+        // Filter matches where this player participated (Normalized check)
         const playerMatches = allMatches.filter(m => {
-            return [...m.blueTeam, ...m.redTeam].some(p => p.name === player.name); // Using name as ID link for now
-        }).slice(0, 5); // Limit to 5
+            return [...m.blueTeam, ...m.redTeam].some(p => {
+                const pName = Utils.normalizeName(p.name);
+                const targetName = Utils.normalizeName(player.name);
+                const targetNick = Utils.normalizeName(player.nickname);
+
+                return pName === targetName || (targetNick && pName === targetNick);
+            });
+        });
 
 
         container.innerHTML = `
@@ -253,6 +331,18 @@ const PlayersPage = {
                                         </div>`;
                 }
                 return '';
+            })()}
+            
+                                <!-- Season Ranks -->
+                                ${(() => {
+                const seasonRanks = DB.getPlayerSeasonRanks ? DB.getPlayerSeasonRanks(player.id) : {};
+                return Object.entries(seasonRanks).map(([season, rank]) => {
+                    const rankColor = rank === 1 ? '#FFD700' : (rank === 2 ? '#C0C0C0' : (rank === 3 ? '#CD7F32' : '#888'));
+                    return `
+                                            <div style="background: rgba(255, 255, 255, 0.05); padding: 4px 10px; border-radius: 6px; border: 1px solid ${rankColor}; display: flex; align-items: center; margin-left: 8px;">
+                                                <span style="font-weight: bold; color: ${rankColor}; font-size: 0.8rem;">${season} Rank: ${rank}</span>
+                                            </div>`;
+                }).join('');
             })()}
                             </div>
                             <p class="mt-4">
@@ -333,9 +423,14 @@ const PlayersPage = {
              <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: var(--space-6);">
                 <!-- Match History -->
                 <div>
-                     <h3 class="profile-section-title">Geçmiş Oyunlar</h3>
+                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4);">
+                        <h3 class="profile-section-title" style="margin-bottom: 0;">Geçmiş Oyunlar</h3>
+                        <a href="javascript:void(0)" onclick="PlayersPage.toggleMatchHistory()" style="font-size: var(--text-sm); color: var(--cyan); text-decoration: none;">
+                            ${this.showAllMatches ? 'Daha Az Göster' : 'Tümünü Gör'}
+                        </a>
+                     </div>
                      <div class="recent-match-list">
-                        ${this.renderMatchHistory(playerMatches, player.name)}
+                        ${this.renderMatchHistory(this.showAllMatches ? playerMatches : playerMatches.slice(0, 5), player)}
                      </div>
                 </div>
 
@@ -353,16 +448,35 @@ const PlayersPage = {
     },
 
     /**
+     * Toggle match history expansion
+     */
+    toggleMatchHistory() {
+        this.showAllMatches = !this.showAllMatches;
+        if (this.currentPlayer) {
+            this.renderPlayerDetail(this.currentPlayer);
+        }
+    },
+
+    /**
      * Render match history list
      */
-    renderMatchHistory(matches, playerName) {
+    renderMatchHistory(matches, player) {
         if (!matches || matches.length === 0) {
             return '<div class="card"><p class="text-muted text-center" style="padding: 20px;">Henüz maç geçmişi yok.</p></div>';
         }
 
+        const playerName = player.name; // For display purposes if needed
+
         return matches.map(match => {
-            // Find player data in match
-            const pData = [...match.blueTeam, ...match.redTeam].find(p => p.name === playerName);
+            // Find player data in match (Normalized check - Name OR Nickname)
+            const pData = [...match.blueTeam, ...match.redTeam].find(p => {
+                const pName = Utils.normalizeName(p.name);
+                const targetName = Utils.normalizeName(player.name);
+                const targetNick = Utils.normalizeName(player.nickname);
+
+                return pName === targetName || (targetNick && pName === targetNick);
+            });
+
             if (!pData) return '';
 
             const isBlue = match.blueTeam.includes(pData);
@@ -383,9 +497,9 @@ const PlayersPage = {
                 <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px;">
                     ${team.map(p => {
                 const cIcon = Utils.getChampionIcon(p.championId || p.champion);
-                const pName = Utils.escapeHtml(p.name);
-                const isSelf = p.name === playerName;
-                return `<img src="${cIcon}" title="${pName}" style="width: 20px; height: 20px; border-radius: 2px; border: ${isSelf ? '1px solid #fff' : 'none'}; opacity: ${isSelf ? '1' : '0.8'};">`;
+                const pName = Utils.normalizeName(p.name);
+                const isSelf = pName === Utils.normalizeName(player.name) || (player.nickname && pName === Utils.normalizeName(player.nickname));
+                return `<img src="${cIcon}" title="${Utils.escapeHtml(p.name)}" style="width: 20px; height: 20px; border-radius: 2px; border: ${isSelf ? '1px solid #fff' : 'none'}; opacity: ${isSelf ? '1' : '0.8'};">`;
             }).join('')}
                 </div>
             `;
@@ -429,8 +543,8 @@ const PlayersPage = {
      */
     renderChampionPool(championStats) {
         const champs = Object.entries(championStats || {})
-            .sort(([, a], [, b]) => b.matches - a.matches)
-            .slice(0, 5);
+            .sort(([, a], [, b]) => (b.matches || 0) - (a.matches || 0))
+            .slice(0, 8);
 
         if (champs.length === 0) {
             return '<p class="text-muted">Henüz şampiyon verisi yok.</p>';

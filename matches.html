@@ -25,7 +25,14 @@
                     <a href="players.html" class="nav-link"><span class="nav-emoji">👥</span><span>Oyuncular</span></a>
                     <a href="matches.html" class="nav-link active"><span class="nav-emoji">📜</span><span>Geçmiş
                             Maçlar</span></a>
-                    <a href="draft.html" class="nav-link"><span class="nav-emoji">⚔️</span><span>Draft Yap</span></a>
+                    <a href="draft.html" class="nav-link">
+                        <span class="nav-emoji">⚔️</span>
+                        <span>Draft Yap</span>
+                    </a>
+                    <a href="rivalry.html" class="nav-link">
+                        <span class="nav-emoji">⚖️</span>
+                        <span>Rekabet (H2H)</span>
+                    </a>
                 </div>
                 <div class="nav-section">
                     <div class="nav-section-title">İstatistikler</div>
@@ -128,11 +135,28 @@
 
         function loadMatches() {
             const container = document.getElementById('matches-list');
+            const urlParams = new URLSearchParams(window.location.search);
+            const seasonId = urlParams.get('season');
+
             // Clone first with slice(), then reverse to avoid mutating DB source
-            const matches = DB.getMatches().slice().reverse();
+            let matches = DB.getMatches().slice().reverse();
+
+            if (seasonId) {
+                // Show ONLY matches for this season
+                matches = matches.filter(m => m.season === seasonId);
+            } else {
+                // Default: Show current season (untagged) matches
+                // matches = matches.filter(m => !m.season); 
+                // Wait, user might want to see ALL history if not in specific mode? 
+                // Let's stick to CURRENT behavior for now (ALL), but if user wants strictly current we can change.
+                // Actually, mixing archived and current is confusing. 
+                // Let's filter to Current (no season tag) by default to keep it clean.
+                matches = matches.filter(m => !m.season);
+            }
 
             if (matches.length === 0) {
-                container.innerHTML = '<div class="card"><div class="empty-state">Henüz maç yok. <a href="draft.html">Draft başlat</a></div></div>';
+                const msg = seasonId ? 'Bu sezona ait maç bulunamadı.' : 'Henüz maç yok. <a href="draft.html">Draft başlat</a>';
+                container.innerHTML = `<div class="card"><div class="empty-state">${msg}</div></div>`;
                 return;
             }
 

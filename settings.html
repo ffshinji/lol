@@ -38,6 +38,10 @@
                         <span class="nav-emoji">⚔️</span>
                         <span>Draft Yap</span>
                     </a>
+                    <a href="rivalry.html" class="nav-link">
+                        <span class="nav-emoji">⚖️</span>
+                        <span>Rekabet (H2H)</span>
+                    </a>
                 </div>
 
                 <div class="nav-section">
@@ -209,10 +213,23 @@
                             <span class="text-muted">Son Güncelleme:</span>
                             <span id="stats-updated" class="text-muted">-</span>
                         </div>
-                        <button class="btn btn-secondary" style="width: 100%; margin-top: var(--space-4);"
-                            onclick="if(confirm('TÜM VERİLER SİLİNECEK! Emin misin?')) { DB.clearData(); location.reload(); }">
-                            🗑️ Tüm Verileri Sil
-                        </button>
+
+                        <hr style="border-color: var(--border-color); margin: 20px 0;">
+
+                        <div class="flex flex-col gap-3">
+                            <button class="btn btn-primary" onclick="openModal('archive-modal')" style="width: 100%;">
+                                📦 Sezonu Arşivle
+                            </button>
+
+                            <button class="btn btn-lose" onclick="openModal('reset-season-modal')" style="width: 100%;">
+                                ⚠️ Sezonu Sıfırla
+                            </button>
+
+                            <button class="btn btn-secondary" style="width: 100%;"
+                                onclick="if(confirm('TÜM VERİLER SİLİNECEK! Emin misin?')) { DB.clearData(); location.reload(); }">
+                                🗑️ Tüm Verileri Sil
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -362,6 +379,24 @@
                     style="position: absolute; right: 20px; top: 20px; font-size: 1.5rem; padding: 0;">×</button>
             </div>
 
+            <div class="form-group mb-4">
+                <label class="form-label">Maç Tarihi</label>
+                <input type="datetime-local" id="add-match-date" class="form-input">
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div class="form-group">
+                    <label class="form-label text-cyan">Mavi Takım Adı</label>
+                    <input type="text" id="add-blue-name" class="form-input" placeholder="Mavi Takım"
+                        value="Mavi Takım">
+                </div>
+                <div class="form-group">
+                    <label class="form-label text-lose">Kırmızı Takım Adı</label>
+                    <input type="text" id="add-red-name" class="form-input" placeholder="Kırmızı Takım"
+                        value="Kırmızı Takım">
+                </div>
+            </div>
+
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6);">
                 <!-- Blue Team -->
                 <div>
@@ -486,6 +521,24 @@
 
             <div id="edit-match-form" style="display: none;">
                 <input type="hidden" id="edit-match-id">
+
+                <div class="form-group mb-4">
+                    <label class="form-label">Maç Tarihi</label>
+                    <input type="datetime-local" id="edit-match-date" class="form-input">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mb-4"
+                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label text-cyan">Mavi Takım Adı</label>
+                        <input type="text" id="edit-blue-name" class="form-input" placeholder="Mavi Takım">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label text-lose">Kırmızı Takım Adı</label>
+                        <input type="text" id="edit-red-name" class="form-input" placeholder="Kırmızı Takım">
+                    </div>
+                </div>
+
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6);">
                     <div>
                         <h3 class="text-cyan mb-4">Mavi Takım</h3>
@@ -517,11 +570,65 @@
         </div>
     </div>
 
+    <!-- Archive Modal -->
+    <div class="modal-backdrop" id="archive-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Sezonu Arşivle</h2>
+                <button class="btn btn-ghost" onclick="closeModal('archive-modal')">×</button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted">Mevcut sezonu arşivlemek üzeresiniz. Bu işlem:</p>
+                <ul
+                    style="margin-left: 20px; list-style-type: disc; color: var(--text-secondary); margin-bottom: 20px;">
+                    <li>Mevcut maçları etiketleyip saklar.</li>
+                    <li>Mevcut Liderlik Tablosunu kaydeder.</li>
+                    <li><strong>Oyuncu istatistiklerini SIFIRLAMAZ.</strong> (Ayrıca sıfırlamanız gerekir)</li>
+                </ul>
+                <div class="form-group">
+                    <label class="form-label">Sezon Adı (Örn: 2022 Sezonu)</label>
+                    <input type="text" id="season-name-input" class="form-input" placeholder="202X Sezonu">
+                </div>
+                <div class="flex justify-end gap-2" style="margin-top: 20px;">
+                    <button class="btn btn-secondary" onclick="closeModal('archive-modal')">İptal</button>
+                    <button class="btn btn-primary" onclick="archiveSeason()">Sadece Arşivle</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reset Season Modal -->
+    <div class="modal-backdrop" id="reset-season-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 style="color: var(--red);">Sezonu Sıfırla</h2>
+                <button class="btn btn-ghost" onclick="closeModal('reset-season-modal')">×</button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted">Mevcut sezon istatistiklerini temizlemek üzeresiniz.</p>
+
+                <div class="alert alert-warning"
+                    style="background: rgba(255, 68, 68, 0.1); border: 1px solid var(--red); color: var(--text-primary); padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <strong>DİKKAT:</strong> Bu işlem geri alınamaz!
+                    Tüm oyuncuların Win/Loss, KDA vb. istatistikleri 0'lanacak.
+                    Eğer sezonu henüz arşivlemediyseniz veriler kaybolabilir.
+                </div>
+
+                <div class="flex justify-end gap-2" style="margin-top: 20px;">
+                    <button class="btn btn-secondary" onclick="closeModal('reset-season-modal')">İptal</button>
+                    <button class="btn btn-lose" onclick="resetSeason()">Evet, Sıfırla</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="js/utils.js"></script>
     <script src="js/db.js"></script>
     <script src="js/stats.js"></script>
     <script src="js/app.js"></script>
     <script src="js/gemini.js"></script>
+    <script src="js/settings.js"></script>
+
     <script>
         // Default admin password (can be changed)
         const DEFAULT_PASSWORD = 'facebook00';
@@ -700,7 +807,9 @@
                 opt.value = m.id;
                 const blueK = (m.blueTeam || []).reduce((s, p) => s + (parseInt(p.k || p.kills) || 0), 0);
                 const redK = (m.redTeam || []).reduce((s, p) => s + (parseInt(p.k || p.kills) || 0), 0);
-                opt.textContent = `${Utils.formatDate(m.date)} | Mavi ${blueK} - ${redK} Kırmızı`;
+                const blueName = m.blueTeamName || 'Mavi';
+                const redName = m.redTeamName || 'Kırmızı';
+                opt.textContent = `${Utils.formatDate(m.date)} | ${blueName} ${blueK} - ${redK} ${redName}`;
                 select.appendChild(opt);
             });
         }
@@ -711,10 +820,27 @@
             if (!matchId) { if (form) form.style.display = 'none'; return; }
 
             const match = DB.getMatchById(matchId);
-            if (!match) return;
+            if (!match) {
+                console.error('Match not found for ID:', matchId);
+                alert('Hata: Seçilen maç veritabanında bulunamadı! (ID: ' + matchId + ')');
+                return;
+            }
 
             document.getElementById('edit-match-id').value = match.id;
             document.getElementById('edit-match-winner').value = match.winnerTeam || match.winner;
+            document.getElementById('edit-blue-name').value = match.blueTeamName || 'Mavi Takım';
+            document.getElementById('edit-red-name').value = match.redTeamName || 'Kırmızı Takım';
+
+            // Format date for datetime-local input (YYYY-MM-DDTHH:mm)
+            if (match.date) {
+                const d = new Date(match.date);
+                // Adjust to local time string format manually or use ISO slice if UTC is acceptable
+                // Local simplified:
+                const dateString = new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+                document.getElementById('edit-match-date').value = dateString;
+            } else {
+                document.getElementById('edit-match-date').value = '';
+            }
 
             const roles = ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'];
             const renderRows = (team, containerId, teamPrefix) => {
@@ -780,7 +906,10 @@
             const success = DB.updateMatch(id, {
                 blueTeam: getTeamData('eb'),
                 redTeam: getTeamData('er'),
-                winnerTeam: document.getElementById('edit-match-winner').value
+                winnerTeam: document.getElementById('edit-match-winner').value,
+                blueTeamName: document.getElementById('edit-blue-name').value.trim() || 'Mavi Takım',
+                redTeamName: document.getElementById('edit-red-name').value.trim() || 'Kırmızı Takım',
+                date: document.getElementById('edit-match-date').value || new Date().toISOString()
             });
 
             if (success) {
@@ -935,6 +1064,12 @@
 
         // ===== DETAILED MATCH ENTRY =====
         function initializeDetailedMatchForm() {
+            // Set default date to now (local time)
+            const now = new Date();
+            const dateString = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+            const dateInput = document.getElementById('add-match-date');
+            if (dateInput) dateInput.value = dateString;
+
             const roles = ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'];
 
             const blueForm = document.getElementById('blue-players-form');
@@ -1056,8 +1191,9 @@
                 blueTeam,
                 redTeam,
                 winnerTeam: winner,
-                blueTeamName: 'Mavi Takım',
-                redTeamName: 'Kırmızı Takım',
+                blueTeamName: document.getElementById('add-blue-name').value.trim() || 'Mavi Takım',
+                redTeamName: document.getElementById('add-red-name').value.trim() || 'Kırmızı Takım',
+                date: document.getElementById('add-match-date').value || new Date().toISOString(),
                 metadata: { processedBy: 'manual' }
             });
 

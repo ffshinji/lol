@@ -60,21 +60,29 @@ window.GeminiAPI = {
     },
 
     buildPrompt() {
-        return `Analyze this League of Legends scoreboard.
-        Extract 10 players total (5 per team).
-        Identify roles: Top, Jungle, Mid, ADC, Support in that order.
-        For each player, extract exactly:
-        - name, champion, role
-        - kills, deaths, assists
-        - kills, deaths, assists
-        - gold: The total gold (convert 14.5k to 14500)
-        - damage: Total champion damage
+        return `You are an expert League of Legends data analyst. Analyze this scoreboard screenshot.
         
-        Return ONLY a JSON object:
+        CRITICAL INSTRUCTION - VISUAL RECOGNITION:
+        - If champion names are missing, obscured, or not written, YOU MUST IDENTIFY THE CHAMPION BY THEIR ICON/PORTRAIT.
+        - You know every League of Legends champion icon. Use this visual knowledge.
+        - Do not hallucinate names. If you are 100% sure of the icon, use that champion name.
+        
+        Extract 10 players total (5 Blue Team, 5 Red Team).
+        The standard order is Top, Jungle, Mid, ADC, Support. If the list seems to follow this order, assign roles accordingly.
+        
+        For each player, extract:
+        - name: The player's summoner name (if visible, otherwise "Unknown")
+        - champion: The champion name (Derived from text OR Icon)
+        - role: TOP, JUNGLE, MID, ADC, or SUPPORT
+        - kills, deaths, assists needed accurately.
+        - gold: Total gold (parse "12.5k" as 12500)
+        - damage: Total damage dealt
+        
+        Return ONLY a raw JSON object with this exact structure (no markdown formatting):
         {
-          "blueTeam": [{"name": "str", "champion": "str", "role": "str", "kills": 0, "deaths": 0, "assists": 0, "gold": 0, "damage": 0}],
+          "blueTeam": [{"name": "...", "champion": "...", "role": "...", "kills": 0, "deaths": 0, "assists": 0, "gold": 0, "damage": 0}],
           "redTeam": [...],
-          "winner": "blue/red"
+          "winner": "blue" or "red"
         }`;
     },
 

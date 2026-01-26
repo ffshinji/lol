@@ -56,11 +56,62 @@ const App = {
      * Setup navigation
      */
     setupNavigation() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const seasonId = urlParams.get('season');
+
+        // Add Season Banner if active
+        if (seasonId) {
+            this.showSeasonBanner(seasonId);
+        }
+
         document.querySelectorAll('.nav-link').forEach(link => {
+            // Persist season param
+            if (seasonId) {
+                const href = link.getAttribute('href');
+                if (href && !href.includes('season=')) {
+                    const separator = href.includes('?') ? '&' : '?';
+                    link.setAttribute('href', `${href}${separator}season=${seasonId}`);
+                }
+            }
+
             link.addEventListener('click', (e) => {
                 // Let normal navigation happen
             });
         });
+    },
+
+    showSeasonBanner(seasonId) {
+        const banner = document.createElement('div');
+        banner.className = 'season-banner';
+        banner.style.cssText = `
+            background: linear-gradient(90deg, #ff8c00, #ff5f6d);
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0 4px 12px rgba(255, 140, 0, 0.3);
+            margin-bottom: 20px;
+            border-radius: 8px;
+        `;
+        banner.innerHTML = `
+            <span>📅 Şu an <strong>${seasonId}</strong> sezonunu görüntülüyorsunuz.</span>
+            <button onclick="App.exitSeasonMode()" class="btn btn-sm" style="background: white; color: #ff8c00; border: none; padding: 4px 12px; font-size: 12px;">Mevcut Sezona Dön</button>
+        `;
+
+        const main = document.querySelector('.main-content');
+        if (main) {
+            main.insertBefore(banner, main.firstChild);
+        }
+    },
+
+    exitSeasonMode() {
+        // Remove season param and reload dashboard or current page
+        const path = window.location.pathname;
+        window.location.href = path; // Reloads without query params (mostly)
     },
 
     /**

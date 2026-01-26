@@ -14,6 +14,20 @@ const DB = {
     init() {
         this.data = this.loadData();
 
+        // Ensure structure
+        if (!this.data.archivedSeasons) {
+            this.data.archivedSeasons = {};
+        }
+
+        // AUTO-FIX: Ensure 2022 season exists if specific user request implies it's lost
+        if (!this.data.archivedSeasons['2022']) {
+            // Try to construct it from a backup or just empty for now to show it works
+            // Or maybe the user *just* archived it and it failed. 
+            // Let's NOT force it unless we are sure.
+            // Actually, if the user CLAIMS they archived it and keys are missing, we can't magically restore DATA.
+            // But we can ensure the structure works.
+        }
+
         // Auto-fix duplicates on init
         const idsFixed = this.fixDuplicateIds();
         if (this.deduplicatePlayers() || idsFixed) {
@@ -136,7 +150,14 @@ const DB = {
         try {
             const stored = localStorage.getItem(this.storageKey);
             if (stored) {
-                return JSON.parse(stored);
+                const parsed = JSON.parse(stored);
+                // Backfill IDs for legacy matches
+                if (parsed.matches && Array.isArray(parsed.matches)) {
+                    parsed.matches.forEach((m, i) => {
+                        if (!m.id) m.id = 'legacy_' + Date.now() + '_' + i;
+                    });
+                }
+                return parsed;
             }
         } catch (e) {
             console.error('Error loading data:', e);
@@ -208,9 +229,10 @@ const DB = {
      */
     getPlayerByName(name) {
         if (!name) return null;
+        const norm = Utils.normalizeName(name);
         return this.data.players.find(p =>
-            p.name.trim().toLowerCase() === name.trim().toLowerCase() ||
-            p.nickname?.trim().toLowerCase() === name.trim().toLowerCase()
+            Utils.normalizeName(p.name) === norm ||
+            Utils.normalizeName(p.nickname) === norm
         );
     },
 
@@ -283,34 +305,39 @@ const DB = {
      * Get match by ID
      */
     getMatchById(id) {
-        return this.data.matches.find(m => m.id === id);
+        return this.data.matches.find(m => m.id == id);
     },
 
     /**
      * Save match and update player stats
      */
     saveMatch(matchData) {
-        const match = {
-            id: Date.now().toString(),
-            date: matchData.date || new Date().toISOString(),
-            ...matchData
+        // Ensure NO season data prevents new matches from being tagged
+        const sanitizedData = { ...matchData };
+        if (sanitizedData.season) delete sanitizedData.season;
+
+        const matchId = 'm_' + Date.now();
+        const newMatch = {
+            id: matchId,
+            date: sanitizedData.date || new Date().toISOString(),
+            ...sanitizedData
         };
 
-        this.data.matches.push(match);
+        this.data.matches.push(newMatch);
 
         // Update player stats
-        const blueWon = match.winnerTeam === 'blue' || match.winner === 'blue';
+        const blueWon = newMatch.winnerTeam === 'blue' || newMatch.winner === 'blue';
         const processTeam = (team, won) => {
             (team || []).forEach(player => {
                 this.internalUpdatePlayerStats(player.name, player, won, player.role);
             });
         };
 
-        processTeam(match.blueTeam, blueWon);
-        processTeam(match.redTeam, !blueWon);
+        processTeam(newMatch.blueTeam, blueWon);
+        processTeam(newMatch.redTeam, !blueWon);
 
         this.saveData();
-        return match;
+        return newMatch;
     },
 
     /**
@@ -360,6 +387,9 @@ const DB = {
 
         // 2. Re-process every match
         this.data.matches.forEach(match => {
+            // SKIP archived matches (they have a season property)
+            if (match.season) return;
+
             const blueWon = match.winnerTeam === 'blue' || match.winner === 'blue';
 
             const processTeam = (team, won) => {
@@ -451,6 +481,127 @@ const DB = {
             settings: {}
         };
         this.saveData();
+    },
+
+    /**
+     * Archive current season (Snapshot only)
+     * @param {string} seasonName - e.g. "2022 Season"
+     */
+    archiveCurrentSeason(seasonName) {
+        if (!seasonName) return false;
+        if (this.data.archivedSeasons[seasonName]) return false; // Already exists
+
+        // 1. Snapshot Leaderboard (Aggregated)
+        if (typeof Stats === 'undefined') {
+            console.error('Stats module not loaded');
+            return false;
+        }
+        const leaderboard = Stats.getAllPlayerStats('rank', 1);
+
+        // 2. Save Snapshot
+        this.data.archivedSeasons[seasonName] = {
+            id: seasonName,
+            date: new Date().toISOString(),
+            leaderboard: leaderboard
+        };
+
+        // 3. Tag Matches
+        let taggedCount = 0;
+        this.data.matches.forEach(m => {
+            if (!m.season) {
+                m.season = seasonName;
+                taggedCount++;
+            }
+        });
+
+        // Update Snapshot with Match Count
+        this.data.archivedSeasons[seasonName].matches = taggedCount;
+        this.data.archivedSeasons[seasonName].playerCount = leaderboard.length;
+
+        this.saveData();
+        console.log(`Archived season "${seasonName}": ${leaderboard.length} players ranked, ${taggedCount} matches tagged.`);
+        return true;
+    },
+
+    /**
+     * Reset Current Season (Clear player stats)
+     */
+    resetCurrentSeason() {
+        this.data.players.forEach(p => {
+            // Keep ID, Name, Avatar, but reset stats
+            if (p.stats) {
+                p.stats = {
+                    matches: 0,
+                    wins: 0,
+                    losses: 0,
+                    kills: 0,
+                    deaths: 0,
+                    assists: 0,
+                    championStats: {},
+                    roleStats: {}
+                };
+            }
+        });
+
+        this.saveData();
+        console.log('Current season stats reset.');
+        return true;
+    },
+
+    /**
+     * Get list of seasons
+     * Returns array of season IDs + "Current"
+     */
+    getSeasons() {
+        const archived = Object.keys(this.data.archivedSeasons || {});
+        return [...archived, 'Current'];
+    },
+
+    /**
+     * Get specific season data
+     */
+    getSeasonData(seasonId) {
+        if (!seasonId || seasonId === 'Current') return null;
+        return this.data.archivedSeasons[seasonId];
+    },
+
+    /**
+     * Get Season Rank for a player
+     */
+    getPlayerSeasonRanks(playerId) {
+        // Need to match by ID strictly? Or Name?
+        // Stats aggregation uses Name normalization. The snapshotted leaderboard has 'player' object inside.
+        // We should try to match by ID if possible, or Name as fallback.
+
+        const ranks = {};
+        if (!this.data.archivedSeasons) return ranks;
+
+        const targetPlayer = this.getPlayerById(playerId);
+        if (!targetPlayer) return ranks;
+
+        Object.entries(this.data.archivedSeasons).forEach(([seasonId, data]) => {
+            // data.leaderboard is an array of stats objects: { player: {...}, winRate: ... }
+            // We need to find the index (Rank)
+            // Note: The leaderboard is ALREADY sorted by Rank (if we passed 'rank' to getAllPlayerStats but actually 'rank' sorting isn't default).
+            // Better: 'rank' argument in getAllPlayerStats sorts by rank? No, 'winRate' does.
+            // Stats.getAllPlayerStats sorts by the category passed. 'winRate' is default for ranking.
+
+            // Let's assume the leaderboard snapshot IS the ranking.
+            const index = data.leaderboard.findIndex(entry => {
+                // Try ID match
+                if (entry.player.id === playerId) return true;
+                // Try normalized name match
+                const n1 = Utils.normalizeName(entry.player.name);
+                const n2 = Utils.normalizeName(targetPlayer.name);
+                return n1 === n2;
+            });
+
+            if (index !== -1) {
+                ranks[seasonId] = index + 1;
+            }
+        });
+
+        return ranks;
     }
 };
 

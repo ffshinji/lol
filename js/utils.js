@@ -26,23 +26,68 @@ const Utils = {
             'drmundo': 'DrMundo',
             'masteryi': 'MasterYi',
             'xinzao': 'XinZhao',
+            'xinzhao': 'XinZhao',
             'belveth': 'Belveth',
-            // Custom/New Champions (Return as is if they are keys, handled in getChampionIcon for URLs)
+            // Custom/New Champions
             'mel': 'Mel',
             'yunara': 'Yunara',
             'zaahen': 'Zaahen',
             'ambessa': 'Ambessa'
         };
 
+        // Check special cases
         const lowerId = formattedId.toLowerCase();
         if (specialCases[lowerId]) {
             return specialCases[lowerId];
         }
 
-        // Fallback format if not in special cases
+        // Fallback format
         formattedId = champId.replace(/[' .]/g, '');
         formattedId = formattedId.charAt(0).toUpperCase() + formattedId.slice(1);
         return formattedId;
+    },
+
+    normalizeName(name) {
+        if (!name) return '';
+        let n = name.toString().toLowerCase();
+
+        // Map Turkish characters
+        const map = {
+            'ş': 's', 'ı': 'i', 'ç': 'c', 'ğ': 'g', 'ü': 'u', 'ö': 'o',
+            'Ş': 's', 'I': 'i', 'Ç': 'c', 'Ğ': 'g', 'Ü': 'u', 'Ö': 'o'
+        };
+
+        Object.keys(map).forEach(key => {
+            n = n.split(key).join(map[key]);
+        });
+
+        return n.replace(/[^a-z0-9]/g, '');
+    },
+
+    /**
+     * Get champion display name (e.g. MonkeyKing -> Wukong, XinZhao -> Xin Zhao)
+     */
+    getChampionDisplayName(champId) {
+        if (!champId) return 'Unknown';
+
+        const displayMaps = {
+            'MonkeyKing': 'Wukong',
+            'XinZhao': 'Xin Zhao',
+            'LeeSin': 'Lee Sin',
+            'DrMundo': 'Dr. Mundo',
+            'JarvanIV': 'Jarvan IV',
+            'KogMaw': "Kog'Maw",
+            'RekSai': "Rek'Sai",
+            'MissFortune': 'Miss Fortune',
+            'TahmKench': 'Tahm Kench',
+            'MasterYi': 'Master Yi',
+            'AurelionSol': 'Aurelion Sol',
+            'TwistedFate': 'Twisted Fate',
+            'RenataGlasc': 'Renata Glasc',
+            'Nunu': 'Nunu & Willump'
+        };
+
+        return displayMaps[champId] || champId;
     },
 
     generateUUID() {
@@ -73,7 +118,6 @@ const Utils = {
 
         return `https://ddragon.leagueoflegends.com/cdn/14.24.1/img/champion/${formattedId}.png`;
     },
-
 
     /**
      * Get profile icon based on player name
@@ -144,12 +188,6 @@ const Utils = {
     },
 
     /**
-     * Get gradient color based on value
-     * value: 0-100 (for percentage)
-     * minHue: Hue for 0% (default 0 - Red)
-     * maxHue: Hue for 100% (default 120 - Green)
-     */
-    /**
      * Get gradient color value (Raw color string)
      */
     getGradientColorValue(value, minHue = 0, maxHue = 120) {
@@ -183,28 +221,16 @@ const Utils = {
     /**
      * Get win rate color
      */
-    /**
-     * Get win rate color
-     * Dynamic gradient: 0% (Red) -> 50% (Yellow) -> 100% (Green)
-     */
     getWinRateColor(wr) {
         return this.getGradientColor(wr);
     },
 
     /**
      * Get KDA color
-     * Dynamic gradient for KDA
-     * 0 -> Red
-     * 3 -> Yellow
-     * 6+ -> Green
      */
     getKDAColor(kdaVal) {
         const kda = parseFloat(kdaVal);
-        // Normalize KDA to 0-100 scale for the gradient
-        // Let's say 0 KDA = 0%, 3 KDA = 50%, 6 KDA = 100%
-        // Formula: (KDA / 6) * 100
         const percentage = (kda / 6) * 100;
-
         return this.getGradientColor(percentage);
     },
 
@@ -250,8 +276,6 @@ const Utils = {
 
     /**
      * Render standardized avatar HTML
-     * @param {Object} player Player object
-     * @param {string} sizeClass Extra classes (avatar-sm, avatar-lg)
      */
     renderAvatarHtml(player, sizeClass = '') {
         const name = player.nickname || player.name || '?';
@@ -364,7 +388,6 @@ const Utils = {
         input.select();
         document.execCommand('copy');
 
-        // Handle button feedback
         let targetBtn = btn;
         if (typeof btn === 'string') {
             targetBtn = document.getElementById(btn);
@@ -380,7 +403,6 @@ const Utils = {
             }, 2000);
         }
 
-        // Also show a toast as fallback/extra feedback
         this.showToast('Link kopyalandı!', 'success');
     }
 };
@@ -388,20 +410,12 @@ const Utils = {
 // SVG Icons (commonly used)
 const Icons = {
     home: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>`,
-
     users: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>`,
-
     file: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>`,
-
     clock: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg>`,
-
     trophy: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>`,
-
     star: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`,
-
     settings: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>`,
-
     plus: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`,
-
     arrowLeft: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>`
 };
